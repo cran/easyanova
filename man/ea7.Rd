@@ -43,7 +43,7 @@ SAMPAIO, I. B. M. Estatistica aplicada a experimentacao animal. 3nd Edition. Bel
 PIMENTEL-GOMES, F. and GARCIA C.H. Estatistica aplicada a experimentos agronomicos e florestais: exposicao com exemplos e orientacoes para uso de aplicativos. Editora Fealq, v.11, 2002. 309p.
 }
 \author{
-Emmanuel Arnhold <earnhold@pq.cnpq;br>
+Emmanuel Arnhold <emmanuelarnhold@yahoo.com.br>
 }
 
 \seealso{

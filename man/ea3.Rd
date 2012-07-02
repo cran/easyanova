@@ -52,7 +52,7 @@ Returns analysis of variance, parameters of model fitting, normality test, test 
 KAPS, M. and LAMBERSON, W. R. Biostatistics for Animal Science: an introductory text. 2nd Edition. CABI Publishing, Wallingford, Oxfordshire, UK, 2009. 504p.
 }
 \author{
-Emmanuel Arnhold <earnhold@pq.cnpq.br>
+Emmanuel Arnhold <emmanuelarnhold@yahoo.com.br>
 }
 
 \seealso{

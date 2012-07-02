@@ -36,7 +36,7 @@ PIMENTEL-GOMES, F. and GARCIA C.H. Estatistica aplicada a experimentos agronomic
 
 }
 \author{
-Emmanuel Arnhold <earnhold@pq.cnpq.br>
+Emmanuel Arnhold <emmanuelarnhold@yahoo.com.br>
 }
 
 \seealso{

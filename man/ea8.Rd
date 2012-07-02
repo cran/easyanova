@@ -32,7 +32,7 @@ SAMPAIO, I. B. M. Estatistica aplicada a experimentacao animal. 3nd Edition. Bel
 SANDERS W.L. and GAYNOR, P.J. Analysis of switchback data using Statistical Analysis System, Inc. Software. Journal of Dairy Science, 70.2186-2191. 1987.
 }
 \author{
-Emmanuel Arnhold <earnhold@pq.cnpq.br>
+Emmanuel Arnhold <emmanuelarnhold@yahoo.com.br>
 }
 
 \seealso{

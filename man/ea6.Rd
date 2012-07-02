@@ -30,7 +30,7 @@ Returns analysis of variance, normality test, test of homogeneity of variance, c
 KAPS, M. and LAMBERSON, W. R. Biostatistics for Animal Science: an introductory text. 2nd Edition. CABI Publishing, Wallingford, Oxfordshire, UK, 2009. 504p.
 }
 \author{
-Emmanuel Arnhold <earnhold@pq.cnpq.br>
+Emmanuel Arnhold <emmanuelarnhold@yahoo.com.br>
 }
 
 \seealso{

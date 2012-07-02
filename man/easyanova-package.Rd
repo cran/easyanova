@@ -12,7 +12,7 @@ Perform analysis of variance and other important complementary analyzes. The fun
 \tabular{ll}{
 Package: \tab easyanova\cr
 Type: \tab Package\cr
-Version: \tab 1.0\cr
+Version: \tab 1.1\cr
 Date: \tab 2012-07-02\cr
 License: \tab GPL-2\cr
 }
@@ -20,7 +20,7 @@ License: \tab GPL-2\cr
 }
 \author{
 
-Emmanuel Arnhold <earnhold@pq.cnpq.br>
+Emmanuel Arnhold <emmanuelarnhold@yahoo.com.br>
 
 }
 \references{
