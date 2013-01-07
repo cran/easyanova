@@ -14,7 +14,7 @@ Latin square design for test four different treatments on hay intake of fattenin
     \item{\code{treatment}}{a factor with levels \code{A} \code{B} \code{C} \code{D}}
     \item{\code{period}}{a factor with levels \code{p1} \code{p2} \code{p3} \code{p4}}
     \item{\code{steer}}{a factor with levels \code{a1} \code{a2} \code{a3} \code{a4}}
-    \item{\code{resposta}}{a numeric vector}
+    \item{\code{response}}{a numeric vector}
   }
 }
 \references{

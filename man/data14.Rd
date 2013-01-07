@@ -11,7 +11,7 @@ Incomplete block design in animals
 \format{
   A data frame with 28 observations on the following 4 variables.
   \describe{
-    \item{\code{treatments}}{a factor with levels \code{A} \code{B} \code{C} \code{D} \code{E} \code{F} \code{G}}
+    \item{\code{treatment}}{a factor with levels \code{A} \code{B} \code{C} \code{D} \code{E} \code{F} \code{G}}
     \item{\code{animal}}{a factor with levels \code{A1} \code{A2} \code{A3} \code{A4} \code{A5} \code{A6} \code{A7}}
     \item{\code{period}}{a factor with levels \code{P1} \code{P2} \code{P3} \code{P4}}
     \item{\code{response}}{a numeric vector}

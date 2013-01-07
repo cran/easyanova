@@ -2,73 +2,127 @@
 \alias{ea2}
 
 \title{
-Analysis of variance in double factorial designs
+Analysis of variance in factorial and split plot 
 }
 \description{
-Perform analysis of variance and other important complementary analyzes in double factorial scheme, with balanced and unbalanced data.
+Perform analysis of variance and other important complementary analyzes in factorial and split plot scheme, with balanced and unbalanced data.
 }
 \usage{
-ea2(data)
+ea2(data, design = 1, alpha = 0.05, cov = 4, list = FALSE)
 }
 
 \arguments{
   \item{data}{
 data is a data.frame
 
-data frame with three columns, factor 1, factor 2 and response (factorial in completely randomized design)
+see how the input data in the examples
+}
+  \item{design}{
 
-data frame with four columns, factor1, factor 2, blocks and response (factorial in randomized block design)
+1 = double factorial in completely randomized design
 
-data frame with five columns, factor 1, factor 2, rows, cols and response (factorial in latin square design)
+2 = double factorial in randomized block design
+ 
+3 = double factorial in latin square design
+
+4 = split plot in completely randomized design
+
+5 = split plot in randomized block design
+
+6 = split plot in latin square design
+
+7 = triple factorial in completely randomized design
+
+8 = triple factorial in randomized block design
+
+9 = double factorial in split plot (completely randomized)
+
+10 = double factorial in split plot (randomized in block)
+
+ 
+
+}
+  \item{alpha}{
+significance level for multiple comparisons 
+}
+  \item{cov}{
+for split plot designs
+
+1 = Autoregressive
+
+2 = Heterogenius Autoregressive
+
+3 = Continuous Autoregressive Process
+
+4 = Compound Symetry
+
+5 = Unstructured
+}
+  \item{list}{
+FALSE = a single response variable
+
+TRUE = multivariable response
 }
 }
 \details{
 The response variable must be numeric. Other variables can be numeric or factors.
 }
 \value{
-Returns analysis of variance, normality test, test of homogeneity of variance, coefficient of variation, means (adjusted means), multiple comparisons tests.
+Returns analysis of variance, means (adjusted means), multiple comparison test (tukey, snk, duncan and t) and residual analysis.
 }
 \references{
-
 KAPS, M. and LAMBERSON, W. R. Biostatistics for Animal Science: an introductory text. 2nd Edition. CABI Publishing, Wallingford, Oxfordshire, UK, 2009. 504p.
 
-PIMENTEL-GOMES, F. and GARCIA C.H. Estatistica aplicada a experimentos agronomicos e florestais: exposicao com exemplos e orientacoes para uso de aplicativos. Editora Fealq, v.11, 2002. 309p.
+SAMPAIO, I. B. M. Estatistica aplicada a experimentacao animal. 3nd Edition. Belo Horizonte: Editora FEPMVZ, Fundacao de Ensino e Pesquisa em Medicina Veterinaria e Zootecnia, 2010. 264p.
 
+PIMENTEL-GOMES, F. and GARCIA C.H. Estatistica aplicada a experimentos agronomicos e florestais: exposicao com exemplos e orientacoes para uso de aplicativos. Editora Fealq, v.11, 2002. 309p.
 }
 \author{
 Emmanuel Arnhold <emmanuelarnhold@yahoo.com.br>
 }
 
+
+
 \seealso{
-ea1, ea3, ea4, ea5, ea6, ea7, ea8, lme, glht
+ea1, ec
 }
 \examples{
 
-# Kaps and Lamberson (2009)
+# double factorial
+
+# completely randomized design
 data(data5)
+r1=ea2(data5, design=1) 
+r1  
 
-# analysis in completely randomized design
-r1<-ea2(data5)
-
+# randomized block design
+data(data6)
+r2=ea2(data6, design=2) 
+r2      
+ 
 names(r1)
 
-r1["Multiple comparison test (factor 1)"]
+names(r2)
 
-r1[10]
+# triple factorial
 
-r1[c(7,8,9)]
+# completely randomized design
+data(data9)
+r3=ea2(data9[,-4], design=7) 
+r3[1]  
 
-r1
 
-# Pimentel Gomes and Garcia (2002)
-data(data6)
+# split plot
 
-# analysis in randomized block design
-r2<-ea2(data6)
+# completely randomized design
+data(data7)
+r4=ea2(data7, design=4)
+r4
 
-r2
-
-r1[1];r2[1]
-
+# randomized block design
+data(data8)
+r5=ea2(data8, design=5)
+r5
+        
 }
 

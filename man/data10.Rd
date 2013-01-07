@@ -15,7 +15,7 @@ was recorded, but not used in the assignment of animals to diet.
   \describe{
     \item{\code{Diets}}{a factor with levels \code{A} \code{B} \code{C}}
     \item{\code{Initial_weight}}{a numeric vector}
-    \item{\code{Repetitios}}{a numeric vector}
+    \item{\code{Repetitions}}{a numeric vector}
     \item{\code{Gain}}{a numeric vector}
   }
 }
