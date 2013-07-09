@@ -5,7 +5,7 @@
 Analysis of variance in simple designs
 }
 \description{
-Perform analysis of variance and other important complementary analyzes. The function are easy to use. Performs analysis in various simples designs, with balanced and unbalanced data.
+Perform analysis of variance and other important complementary analyzes. The function are easy to use. Performs analysis in various simples designs, with balanced and unbalanced data. Too performs analysis the kruskal-Wallis and Friedman (designs 14 and 15).
 }
 
 \usage{
@@ -45,6 +45,11 @@ see how the input data in the examples
 12 = switchback design 
 
 13 = switchback design in blocks
+
+14 = Kruskal-Wallis rank sum test
+
+15 = Friedman rank sum test
+
 }
   \item{alpha}{
 significance level for multiple comparisons 
@@ -59,7 +64,7 @@ TRUE = multivariable response
 The response variable must be numeric. Other variables can be numeric or factors.
 }
 \value{
-Returns analysis of variance, means (adjusted means), multiple comparison test (tukey, snk, duncan and t) and residual analysis. 
+Returns analysis of variance, means (adjusted means), multiple comparison test (tukey, snk, duncan, t and scott knott) and residual analysis. Too returns analysis the kruskal-Wallis and Friedman (designs 14 and 15). 
 }
 \references{
 CRUZ, C.D. and CARNEIRO, P.C.S. Modelos biometricos aplicados ao melhoramento genetico. 2nd Edition. Vicosa, UFV, v.2, 2006. 585p.
@@ -71,6 +76,7 @@ SAMPAIO, I. B. M. Estatistica aplicada a experimentacao animal. 3nd Edition. Bel
 SANDERS W.L. and GAYNOR, P.J. Analysis of switchback data using Statistical Analysis System, Inc. Software. Journal of Dairy Science, 70.2186-2191. 1987.
 
 PIMENTEL-GOMES, F. and GARCIA C.H. Estatistica aplicada a experimentos agronomicos e florestais: exposicao com exemplos e orientacoes para uso de aplicativos. Editora Fealq, v.11, 2002. 309p.
+
 
 }
 \author{
@@ -151,18 +157,18 @@ r6
 data(data11)
 data(data12)
 
-r7<-ea1(data11,design=7)
-r8<-ea1(data12,design=7)
+#r7<-ea1(data11,design=7)
+#r8<-ea1(data12,design=7)
 
-r7;r8
+#r7;r8
 
 
 # incomplete blocks type III or augmented blocks 
 # Cruz and Carneiro (2006)
 data(data13)
 
-r9<-ea1(data13, design=8)
-r9
+#r9<-ea1(data13, design=8)
+#r9
 
 
 
@@ -177,11 +183,11 @@ r10
 # Pimentel Gomes and Garcia (2002)
 data(data15)
 
-r11<-ea1(data15, design=10) # intra-block analysis 
-r12<-ea1(data15, design=11) # inter-block analysis
+#r11<-ea1(data15, design=10) # intra-block analysis 
+#r12<-ea1(data15, design=11) # inter-block analysis
 
-r11
-r12
+#r11
+#r12
 
 # switchback design
 # Sampaio (2010)
@@ -195,6 +201,13 @@ data(data17)
 r14<-ea1(data17, design=13)
 r14
 
+#Kruskal-Wallis Rank Sum Test
+r15<-ea1(data1, design=14)
+r15
+
+#Friedman Rank Sum Test
+r16<-ea1(data2, design=15)
+r16
 
 
 }

@@ -39,8 +39,13 @@ see how the input data in the examples
 
 10 = double factorial in split plot (randomized in block)
 
- 
+11 = joint analysis of experiments with hierarchical blocks
 
+12 = joint analysis of repetitions of latin squares (hierarchical rows)
+
+13 = joint analysis of repetitions of latin squares (hierarchical rows and columns)
+
+ 
 }
   \item{alpha}{
 significance level for multiple comparisons 
@@ -68,7 +73,7 @@ TRUE = multivariable response
 The response variable must be numeric. Other variables can be numeric or factors.
 }
 \value{
-Returns analysis of variance, means (adjusted means), multiple comparison test (tukey, snk, duncan and t) and residual analysis.
+Returns analysis of variance, means (adjusted means), multiple comparison test (tukey, snk, duncan, t and scott knott) and residual analysis.
 }
 \references{
 KAPS, M. and LAMBERSON, W. R. Biostatistics for Animal Science: an introductory text. 2nd Edition. CABI Publishing, Wallingford, Oxfordshire, UK, 2009. 504p.
@@ -76,6 +81,9 @@ KAPS, M. and LAMBERSON, W. R. Biostatistics for Animal Science: an introductory 
 SAMPAIO, I. B. M. Estatistica aplicada a experimentacao animal. 3nd Edition. Belo Horizonte: Editora FEPMVZ, Fundacao de Ensino e Pesquisa em Medicina Veterinaria e Zootecnia, 2010. 264p.
 
 PIMENTEL-GOMES, F. and GARCIA C.H. Estatistica aplicada a experimentos agronomicos e florestais: exposicao com exemplos e orientacoes para uso de aplicativos. Editora Fealq, v.11, 2002. 309p.
+
+RAMALHO, M. A. P.; FERREIRA, D. F. and OLIVEIRA, A. C. Experimentacao em Genetica e Melhoramento de Plantas. Editora UFLA, 2005, 322p.
+
 }
 \author{
 Emmanuel Arnhold <emmanuelarnhold@yahoo.com.br>
@@ -123,6 +131,26 @@ r4
 data(data8)
 r5=ea2(data8, design=5)
 r5
+
+# hierarchical blocks
+# Ramalho et al. (2005)
+data(data18)
+data18
+#r6=ea2(data18, design=11)
+#r6
+
+# hierarchical latin squares 
+# Sampaio (2010)
+data(data19)
+data19
+#r7=ea2(data19, design=12)
+#r8=ea2(data19, design=13)
+
+# hierarchical rows
+#r7
+
+# hierarchical rows and columns
+#r8
         
 }
 

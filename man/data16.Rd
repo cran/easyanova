@@ -2,7 +2,7 @@
 \alias{data16}
 \docType{data}
 \title{
-data16: Sampaio (2009): page164
+data16: Sampaio (2010): page164
 }
 \description{
 Switchback design

@@ -12,8 +12,8 @@ Perform analysis of variance and other important complementary analyzes. The fun
 \tabular{ll}{
 Package: \tab easyanova\cr
 Type: \tab Package\cr
-Version: \tab 2.1\cr
-Date: \tab 2013-01-07\cr
+Version: \tab 2.2\cr
+Date: \tab 2013-07-09\cr
 License: \tab GPL-2\cr
 }
 
@@ -34,6 +34,8 @@ SAMPAIO, I. B. M. Estatistica aplicada a experimentacao animal. 3nd Edition. Bel
 SANDERS W.L. and GAYNOR, P.J. Analysis of switchback data using Statistical Analysis System, Inc. Software. Journal of Dairy Science, 70.2186-2191. 1987.
 
 PIMENTEL-GOMES, F. and GARCIA C.H. Estatistica aplicada a experimentos agronomicos e florestais: exposicao com exemplos e orientacoes para uso de aplicativos. Editora Fealq, v.11, 2002. 309p.
+
+RAMALHO, M. A. P.; FERREIRA, D. F. and OLIVEIRA, A. C. Experimentacao em Genetica e Melhoramento de Plantas. Editora UFLA, 2005, 322p.
 
 }
 

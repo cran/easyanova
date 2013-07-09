@@ -1,8 +1,8 @@
-6252ce1099a8d02c6ea73d0bfce7a50b *DESCRIPTION
+117a152a65012b3d5dd3ca1c7228298f *DESCRIPTION
 8b54e5a89fbda3af5e077053d40bec76 *NAMESPACE
-7bab90d7bb0bb6058d7949c6987eb9ba *R/ea1.R
-9ad2ed4d95f0b80b4721b2458defb348 *R/ea2.R
-087084c0d8034d4c6bf342824ab97391 *R/ec.R
+f9b52efaf01b222ee9acd38909b961fb *R/ea1.R
+b3191123eafaaceef05b670a7ee15bf4 *R/ea2.R
+f936da9979a6d78c811b07cef6bdad8f *R/ec.R
 b105ae919a786d33d3b32b2caf547dac *data/data1.rda
 e02ece2c54ce110ddeb64fad0f6bfef7 *data/data10.rda
 50eddbf759f60aae277b54704b380830 *data/data11.rda
@@ -12,6 +12,8 @@ c1cbf3c0d5a5f8bd1e1235e83c1341b7 *data/data14.rda
 62473033b4dd79bf811d96bf72dfb0a8 *data/data15.rda
 96a190510732457e8306208c017d2dc0 *data/data16.rda
 ed679d0616f1af83b161156bf8997d0d *data/data17.rda
+12416e7db75669290df3728e98944020 *data/data18.rda
+61b7ae83f018a4e1c168603198c2a8e5 *data/data19.rda
 700d4446a4a1b2b220d086e948ffcf76 *data/data2.rda
 2a1aba0009fdfd403c46a7a50301b402 *data/data3.rda
 71000cb2f893583f875eb8bbba244b51 *data/data4.rda
@@ -27,8 +29,10 @@ bb1d1b247bc30174df82022ee30d9bae *man/data10.Rd
 a514d2838948b225361dc0037c47a739 *man/data13.Rd
 7dfa2863035edfcc0bf0e16bd111d1d8 *man/data14.Rd
 1d01f664acbdea34680470c48a4f7662 *man/data15.Rd
-94bef0f07d7b42742adc88f034b3bc52 *man/data16.Rd
+fcf0269f7de3db76c30332a9f59e1f20 *man/data16.Rd
 bbf303ce23aabbb39d757fef78db9dc4 *man/data17.Rd
+1f6422419675faf1fccbbecdea0fa25f *man/data18.Rd
+7e6f3131b30b143d23b615fbc4b612c2 *man/data19.Rd
 bf0185f47545e435711e04dc8d488d3b *man/data2.Rd
 a53f2f70077d7128a03ee94a8838b1f5 *man/data3.Rd
 0e93f1cc556ca28ceb5b63bd6af66c13 *man/data4.Rd
@@ -37,7 +41,7 @@ c70b307caac011ffdbec58e6dec96533 *man/data5.Rd
 119f1febde954acc5d93818bd874ff63 *man/data7.Rd
 8514852e9ffecefd9bc4c668f82eccc2 *man/data8.Rd
 2d3e91da073e01c78dcb856048920202 *man/data9.Rd
-332c59e058e0ecba9649a39ddeed8cd7 *man/ea1.Rd
-907a2fd4a57f96b8351f965cdad4fbf2 *man/ea2.Rd
-2cb406273cef8a197d85fbdfd9421ec8 *man/easyanova-package.Rd
-c5bb4a2cc584028c2b0f2d50e6bc8b7c *man/ec.Rd
+5b6425eb88a00b8f63cdf3483ed8ef08 *man/ea1.Rd
+57142078c22e2a5c8259c6d853961515 *man/ea2.Rd
+e846214d1d602e0934f7d7026c868533 *man/easyanova-package.Rd
+4d513b39f6243559c06d580a699ade47 *man/ec.Rd

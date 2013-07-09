@@ -8,7 +8,7 @@ Easy contrast
 Performs contrasts of means
 }
 \usage{
-ec(mg1, mg2, sdg1, sdg2, gl)
+ec(mg1, mg2, sdg1, sdg2, df)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -22,14 +22,14 @@ Means of the group 2
 }
 
   \item{sdg1}{
-Standart error of the group 1
+Standard error of the group 1
 }
 
   \item{sdg2}{
-Standart error of the group 2
+Standard error of the group 2
 }
 
-  \item{gl}{
+  \item{df}{
 Degree of freedom from error
 }
 }
@@ -58,12 +58,12 @@ r<-ea1(data1, design=1)
 r[2]
 
 # first contrast
-mg1=312;mg2=c(278,280); sdg1=7.7028;sdg2=c(7.7028,7.7028); gl=12
-ec(mg1,mg2,sdg1,sdg2,gl)
+mg1=312;mg2=c(278,280); sdg1=7.7028;sdg2=c(7.7028,7.7028); df=12
+ec(mg1,mg2,sdg1,sdg2,df)
 
 # second contrast
-mg1=280;mg2=278; sdg1=7.7028;sdg2=7.7028; gl=12
-ec(mg1,mg2,sdg1,sdg2,gl)
+mg1=280;mg2=278; sdg1=7.7028;sdg2=7.7028; df=12
+ec(mg1,mg2,sdg1,sdg2,df)
 
 }
 
