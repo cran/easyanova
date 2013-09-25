@@ -1,7 +1,28 @@
 ea2 <-
-function(data, design=1, alpha=0.05, cov=4, list=FALSE)
+function(data, design=1, alpha=0.05, cov=4, list=FALSE, p.adjust=1, plot=2)
     {
         list=ifelse(list==FALSE,1,2)
+
+pres=function(m){
+	r=resid(m)
+	r=scale(r)
+	t=1:length(r)
+	g1=function(r){boxplot(r,col="grey80",ylab="Standardized residuals", main="Box plot for residuals")}
+	g2=function(r){plot(r~t, pch="",ylim=c(-4,4), ylab="Standardized residuals", xlab="Sequence data", 		main="Standardized residuals vs Sequence data", axes=FALSE);axis(2,c(-4,-3.5,-3,-2.5,-2,-1,0,1,2,2.5,3,3.5,4));abline(h=2.5, lty=2);abline(h=-2.5,lty=2);abline(h=3.5, lty=2, col=2);abline(h=-3.5,lty=2, col=2); text(2.5,2.7, "2.5 z-score");text(2.5,-2.7, "-2.5 z-score");text(2.5,3.7, "3.5 z-score");text(2.5,-3.7, "-3.5 z-score");text(t,r,labels=1:length(r))}
+	a=qqnorm(r,plot.it = FALSE)
+	a1=a$x;a2=a$y;rownames(a2)=NULL; a3=sqrt((a$y)^2);rownames(a3)=NULL; a4=1:length(r)
+	d=data.frame(a1,a2,a3,a4)	
+	do=d[order(d[,3], decreasing=TRUE),]
+d1=do[1,c(1,2)]
+d2=do[2,c(1,2)]
+d3=do[3,c(1,2)]
+n1=as.character(do[1,4])
+n2=as.character(do[2,4])
+n3=as.character(do[3,4])
+	g3=function(r){qqnorm(r, ylab="Standardized residuals", xlab="Theoretical quantiles", main="Standardized residuals vs Theoretical quantiles");qqline(r, col = "grey50");text(d1,n1,adj=-0.5,col=2, cex=0.8);text(d2,n2,adj=-0.5,col=2, cex=0.8);text(d3,n3,adj=-0.5,col=2,cex=0.8)}
+	g=list(g1,g2,g3)
+	g[[plot]](r)
+	}
 
 sk=function(means, df1, QME, nrep, alpha=0.05){
 sk1=function(means, df1, QME, nrep, alpha=alpha) {
@@ -73,7 +94,12 @@ return(rp2)
         
         fr=function(m,data){
             r=resid(m)
-            s <- shapiro.test(r)
+	i=ifelse(length(r)>5000, 2,1)
+	jr=function(r,aa)r+aa-aa
+	jsample=function(r,aa)sample(r,aa)
+	rr=list(jr,jsample)
+	rr=rr[[i]](r,5000)
+            s <- shapiro.test(rr)
             b1<- bartlett.test(r~factor_1, data=data)
             b2<- bartlett.test(r~factor_2, data=data)
             b3<- bartlett.test(r~treatments, data=data)
@@ -90,7 +116,12 @@ return(rp2)
             data=data.frame(data,nr=c(1:length(data$response)))
             data2<-na.omit(data)
             r<-resid(m)
-            s<-shapiro.test(r)
+	i=ifelse(length(r)>5000, 2,1)
+	jr=function(r,aa)r+aa-aa
+	jsample=function(r,aa)sample(r,aa)
+	rr=list(jr,jsample)
+	rr=rr[[i]](r,5000)
+            s<-shapiro.test(rr)
             b1<- bartlett.test(r~plot, data=data2)
             b2<- bartlett.test(r~split.plot, data=data2)
             b3<- bartlett.test(r~treatments, data=data2)
@@ -107,7 +138,12 @@ return(rp2)
         
         fr3=function(m,data){
             r=resid(m)
-            s <- shapiro.test(r)
+	i=ifelse(length(r)>5000, 2,1)
+	jr=function(r,aa)r+aa-aa
+	jsample=function(r,aa)sample(r,aa)
+	rr=list(jr,jsample)
+	rr=rr[[i]](r,5000)
+            s <- shapiro.test(rr)
             b1<- bartlett.test(r~factor_1, data=data)
             b2<- bartlett.test(r~factor_2, data=data)
             b3<- bartlett.test(r~factor_3, data=data)
@@ -123,8 +159,13 @@ return(rp2)
         fr4=function(m,data){
             data=data.frame(data,nr=c(1:length(data$response)))
             data2<-na.omit(data)
-            r<-resid(m)
-            s<-shapiro.test(r)
+	    r<-resid(m)
+	i=ifelse(length(r)>5000, 2,1)
+	jr=function(r,aa)r+aa-aa
+	jsample=function(r,aa)sample(r,aa)
+	rr=list(jr,jsample)
+	rr=rr[[i]](r,5000)
+            s<-shapiro.test(rr)
             b1<- bartlett.test(r~factor_1, data=data2)
             b2<- bartlett.test(r~factor_2, data=data2)
             b3<- bartlett.test(r~factor_3, data=data2)
@@ -176,10 +217,13 @@ return(rp2)
             yxx=yi/(si*sqrt(2))
             vt=1-pt(yxx,dff); vt=vt*2
             vt=round(vt,4)
-            ggs=data.frame(w,round(yi,4),st, ssnk, sd, vt)
-            colnames(ggs)=c("pair", "contrast","p(tukey)", "p(snk)", "p(duncan)", "p(t)")
-            return(ggs)
-        }
+            lp=list("none","holm", "hochberg", "hommel", "bonferroni", "BH", "BY","fdr")
+	pf=p.adjust(vt, lp[[p.adjust]])
+        ggs=data.frame(w,round(yi,4),st, ssnk, sd, round(pf,4))
+	nam=list("p(t)","p(t)adjust.holm", "p(t)adjust.hochberg", "p(t)adjust.hommel", "p(t)adjust.bonferroni", "p(t)adjust.BH", "p(t)adjust.BY","p(t)adjust.fdr")
+        colnames(ggs)=c("pair", "contrast","p(tukey)", "p(snk)", "p(duncan)", nam[[p.adjust]])
+        return(ggs)
+    }
         ft=function(test, alpha=0.05){
             level=alpha
             tes1=test[,3]
@@ -362,11 +406,12 @@ return(rp2)
             jjj2=inab(x2, decreasing = decreasing,); jjj2=jjj2[[1]]
             jjj3=inab(x3, decreasing = decreasing,); jjj3=jjj3[[1]]
             jjj4=inab(x4, decreasing = decreasing,); jjj4=jjj4[[1]]
-            hgy=data.frame(jjj1,jjj2,jjj3,jjj4); names(hgy)=c("tukey","snk","duncan","t")
+            nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.bonferroni", "t.adjust.BH", "t.adjust.BY","t.adjust.fdr")
+        hgy=data.frame(jjj1,jjj2,jjj3,jjj4); names(hgy)=c("tukey","snk","duncan",nam[[p.adjust]])
             return(hgy)
         }
-        
-        
+		
+	                
         f1<-function(data,cov){ 
             names(data)=c("factor_1","factor_2","response")
             data<-data.frame(factor_1=factor(data$factor_1), factor_2=factor(data$factor_2), response=data$response)
@@ -435,7 +480,8 @@ return(rp2)
 	    ftt1=function(x){a=data.frame(groups3[x],scott_knott[x])}
 	    xx1=1:length(groups3)
             ftr=lapply(xx1, ftt1)
-	    on=c("tukey","snk","duncan","t","scott_knott");for(i in xx1){names(ftr[[i]])=on}
+nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.bonferroni", "t.adjust.BH", "t.adjust.BY","t.adjust.fdr")
+	    on=c("tukey","snk","duncan",nam[[p.adjust]],"scott_knott");for(i in xx1){names(ftr[[i]])=on}
 	    names(ftr)=names(groups3)
 	    dd<-function(x){l=data.frame(mft1[[x]],ftr[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$factor_2)))
             mft1=lapply(nf1,dd)
@@ -450,13 +496,15 @@ return(rp2)
 	    ftt1=function(x){a=data.frame(groups4[x],scott_knott[x])}
 	    xx1=1:length(groups4)
             ftr=lapply(xx1, ftt1)
-	    on=c("tukey","snk","duncan","t","scott_knott");for(i in xx1){names(ftr[[i]])=on}
+nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.bonferroni", "t.adjust.BH", "t.adjust.BY","t.adjust.fdr")
+	    on=c("tukey","snk","duncan",nam[[p.adjust]],"scott_knott");for(i in xx1){names(ftr[[i]])=on}
 	    names(ftr)=names(groups4)
             ddd<-function(x){l=data.frame(mft2[[x]],ftr[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$factor_1)))
             mft2=lapply(nf2,ddd)
             names(mft2)=n22
             l<-list(a3,mf1, test1, mf2,test2,mft1,test3, mft2, test4, res)
             names(l)= list("Analysis of variance", "Adjusted means (factor 1)", "Multiple comparison test (factor 1)","Adjusted means (factor 2)", "Multiple comparison test (factor 2)", "Adjusted means (factor 1 in levels of factor 2)", "Multiple comparison test (factor 1 in levels of factor 2)", "Adjusted means (factor 2 in levels of factor 1)", "Multiple comparison test (factor 2 in levels of factor 1)","Residual analysis")
+		pres(m)  
             return(l)}
         
             f2<-function(data, cov){ 
@@ -528,7 +576,8 @@ return(rp2)
 	    ftt1=function(x){a=data.frame(groups3[x],scott_knott[x])}
 	    xx1=1:length(groups3)
             ftr=lapply(xx1, ftt1)
-	    on=c("tukey","snk","duncan","t","scott_knott");for(i in xx1){names(ftr[[i]])=on}
+nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.bonferroni", "t.adjust.BH", "t.adjust.BY","t.adjust.fdr")
+	    on=c("tukey","snk","duncan",nam[[p.adjust]],"scott_knott");for(i in xx1){names(ftr[[i]])=on}
 	    names(ftr)=names(groups3)
 	    dd<-function(x){l=data.frame(mft1[[x]],ftr[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$factor_2)))
             mft1=lapply(nf1,dd)
@@ -543,13 +592,15 @@ return(rp2)
 	    ftt1=function(x){a=data.frame(groups4[x],scott_knott[x])}
 	    xx1=1:length(groups4)
             ftr=lapply(xx1, ftt1)
-	    on=c("tukey","snk","duncan","t","scott_knott");for(i in xx1){names(ftr[[i]])=on}
+nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.bonferroni", "t.adjust.BH", "t.adjust.BY","t.adjust.fdr")
+	    on=c("tukey","snk","duncan",nam[[p.adjust]],"scott_knott");for(i in xx1){names(ftr[[i]])=on}
 	    names(ftr)=names(groups4)
             ddd<-function(x){l=data.frame(mft2[[x]],ftr[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$factor_1)))
             mft2=lapply(nf2,ddd)
             names(mft2)=n22
             l<-list(a3,mf1, test1, mf2,test2,mft1,test3, mft2, test4, res)
             names(l)= list("Analysis of variance", "Adjusted means (factor 1)", "Multiple comparison test (factor 1)","Adjusted means (factor 2)", "Multiple comparison test (factor 2)", "Adjusted means (factor 1 in levels of factor 2)", "Multiple comparison test (factor 1 in levels of factor 2)", "Adjusted means (factor 2 in levels of factor 1)", "Multiple comparison test (factor 2 in levels of factor 1)","Residual analysis")
+		pres(m)  
             return(l)
         }
         
@@ -622,7 +673,8 @@ return(rp2)
 	    ftt1=function(x){a=data.frame(groups3[x],scott_knott[x])}
 	    xx1=1:length(groups3)
             ftr=lapply(xx1, ftt1)
-	    on=c("tukey","snk","duncan","t","scott_knott");for(i in xx1){names(ftr[[i]])=on}
+nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.bonferroni", "t.adjust.BH", "t.adjust.BY","t.adjust.fdr")
+	    on=c("tukey","snk","duncan",nam[[p.adjust]],"scott_knott");for(i in xx1){names(ftr[[i]])=on}
 	    names(ftr)=names(groups3)
 	    dd<-function(x){l=data.frame(mft1[[x]],ftr[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$factor_2)))
             mft1=lapply(nf1,dd)
@@ -637,13 +689,15 @@ return(rp2)
 	    ftt1=function(x){a=data.frame(groups4[x],scott_knott[x])}
 	    xx1=1:length(groups4)
             ftr=lapply(xx1, ftt1)
-	    on=c("tukey","snk","duncan","t","scott_knott");for(i in xx1){names(ftr[[i]])=on}
+nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.bonferroni", "t.adjust.BH", "t.adjust.BY","t.adjust.fdr")
+	    on=c("tukey","snk","duncan",nam[[p.adjust]],"scott_knott");for(i in xx1){names(ftr[[i]])=on}
 	    names(ftr)=names(groups4)
             ddd<-function(x){l=data.frame(mft2[[x]],ftr[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$factor_1)))
             mft2=lapply(nf2,ddd)
             names(mft2)=n22
             l<-list(a3,mf1, test1, mf2,test2,mft1,test3, mft2, test4, res)
             names(l)= list("Analysis of variance", "Adjusted means (factor 1)", "Multiple comparison test (factor 1)","Adjusted means (factor 2)", "Multiple comparison test (factor 2)", "Adjusted means (factor 1 in levels of factor 2)", "Multiple comparison test (factor 1 in levels of factor 2)", "Adjusted means (factor 2 in levels of factor 1)", "Multiple comparison test (factor 2 in levels of factor 1)","Residual analysis")
+		pres(m)  
             return(l)
         }
         
@@ -715,6 +769,7 @@ return(rp2)
             names(mft2)=n22                  
             l=list(b,mf1,test1,mf2,test2,mft1,test3,mft2,test4, res)
             names(l)=c("Marginal anova (Type III Sum of Squares)","Adjusted means (plot)", "Multiple comparison test (plot)","Adjusted means (split.plot)", "Multiple comparison test (split.plot)", "Adjusted means (plot in levels of split.plot)", "Multiple comparison test (plot in levels of split.plot)", "Adjusted means (split.plot in levels of plot)", "Multiple comparison test (split.plot in levels of plot)","Residual analysis")
+		pres(m)  
             return(l)
         }
         
@@ -786,6 +841,7 @@ return(rp2)
             names(mft2)=n22    
             l=list(b,mf1,test1,mf2,test2,mft1,test3,mft2,test4, res)
             names(l)=c("Marginal anova (Type III Sum of Squares)","Adjusted means (plot)", "Multiple comparison test (plot)","Adjusted means (split.plot)", "Multiple comparison test (split.plot)", "Adjusted means (plot in levels of split.plot)", "Multiple comparison test (plot in levels of split.plot)", "Adjusted means (split.plot in levels of plot)", "Multiple comparison test (split.plot in levels of plot)","Residual analysis")
+		pres(m)  
             return(l)
         }
         
@@ -819,7 +875,6 @@ return(rp2)
             rownames(c)<-NULL
             df1<- anova(m) $"denDF"[2]
             df2<- anova(m) $"denDF"[1]
-            
             mm1<-lme(response~-1+plot*split.plot+row+column, random=~1|subject, data=data, na.action=na.omit, contrasts=list(plot=contr.sum, split.plot=contr.sum, column=contr.sum, row=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
             mm2<-lme(response~-1+split.plot*plot+row+column, random=~1|subject, data=data, na.action=na.omit, contrasts=list(split.plot=contr.sum, plot=contr.sum, column=contr.sum, row=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
             a11<-data.frame(levels(data$plot), round(fixef(mm1)[1:nlevels(data$plot)],4), round(sqrt(diag(vcov(mm1))[1:nlevels(data$plot)]),4))
@@ -856,9 +911,9 @@ return(rp2)
             ddd<-function(x){l=data.frame(mft2[[x]],groups4[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$plot)))
             mft2=lapply(nf2,ddd)
             names(mft2)=n22
-            
             l=list(b,mf1,test1,mf2,test2,mft1,test3,mft2,test4, res)
             names(l)=c("Marginal anova (Type III Sum of Squares)","Adjusted means (plot)", "Multiple comparison test (plot)","Adjusted means (split.plot)", "Multiple comparison test (split.plot)", "Adjusted means (plot in levels of split.plot)", "Multiple comparison test (plot in levels of split.plot)", "Adjusted means (split.plot in levels of plot)", "Multiple comparison test (split.plot in levels of plot)","Residual analysis")
+		pres(m)  
             return(l)
         }
         
@@ -875,7 +930,6 @@ return(rp2)
             a3<-fa2(a3)
             data2<-na.omit(data)
             res=fr3(m,data2)
-            
             treatments_f1f2=interaction(data$factor_1,data$factor_2)
             treatments_f1f3=interaction(data$factor_1,data$factor_3)
             treatments_f2f3=interaction(data$factor_2,data$factor_3)
@@ -1037,6 +1091,7 @@ return(rp2)
             names(mft9)=n11
             l<-list(a3,  mf1, test1, mf2,test2,mf3,test3,   mft1,test4,mft2,test5,  mft3,test6,mft4,test7,  mft5,test8,mft6,test9,  mft7,test10, mft8,test11, mft9,test12, res)
             names(l)= list("Analysis of variance", "Adjusted means (factor 1)", "Multiple comparison test (factor 1)","Adjusted means (factor 2)", "Multiple comparison test (factor 2)", "Adjusted means (factor 3)", "Multiple comparison test (factor 3)", "Adjusted means (factor 1 in levels of factor 2)", "Multiple comparison test (factor 1 in levels of factor 2)", "Adjusted means (factor 2 in levels of factor 1)", "Multiple comparison test (factor 2 in levels of factor 1)","Adjusted means (factor 1 in levels of factor 3)", "Multiple comparison test (factor 1 in levels of factor 3)", "Adjusted means (factor 3 in levels of factor 1)", "Multiple comparison test (factor 3 in levels of factor 1)","Adjusted means (factor 2 in levels of factor 3)", "Multiple comparison test (factor 2 in levels of factor 3)", "Adjusted means (factor 3 in levels of factor 2)", "Multiple comparison test (factor 3 in levels of factor 2)","Adjusted means (factor 1 in levels of treatments factor2*factor3)", "Multiple comparison test (factor 1 in levels of treatments factor2*factor3)","Adjusted means (factor 2 in levels of treatments factor1*factor3)", "Multiple comparison test (factor 2 in levels of treatments factor1*factor3)", "Adjusted means (factor 3 in levels of treatments factor1*factor2)","Multiple comparison test (factor 3 in levels of treatments factor1*factor2)","Residual analysis")
+		pres(m)  
             return(l)}
         
         
@@ -1052,7 +1107,6 @@ return(rp2)
             a3<-fa2(a3)
             data2<-na.omit(data)
             res=fr3(m,data2)
-            
             treatments_f1f2=interaction(data$factor_1,data$factor_2)
             treatments_f1f3=interaction(data$factor_1,data$factor_3)
             treatments_f2f3=interaction(data$factor_2,data$factor_3)
@@ -1214,6 +1268,7 @@ return(rp2)
             names(mft9)=n11
             l<-list(a3,  mf1, test1, mf2,test2,mf3,test3,   mft1,test4,mft2,test5,  mft3,test6,mft4,test7,  mft5,test8,mft6,test9,  mft7,test10, mft8,test11, mft9,test12, res)
             names(l)= list("Analysis of variance", "Adjusted means (factor 1)", "Multiple comparison test (factor 1)","Adjusted means (factor 2)", "Multiple comparison test (factor 2)", "Adjusted means (factor 3)", "Multiple comparison test (factor 3)", "Adjusted means (factor 1 in levels of factor 2)", "Multiple comparison test (factor 1 in levels of factor 2)", "Adjusted means (factor 2 in levels of factor 1)", "Multiple comparison test (factor 2 in levels of factor 1)","Adjusted means (factor 1 in levels of factor 3)", "Multiple comparison test (factor 1 in levels of factor 3)", "Adjusted means (factor 3 in levels of factor 1)", "Multiple comparison test (factor 3 in levels of factor 1)","Adjusted means (factor 2 in levels of factor 3)", "Multiple comparison test (factor 2 in levels of factor 3)", "Adjusted means (factor 3 in levels of factor 2)", "Multiple comparison test (factor 3 in levels of factor 2)","Adjusted means (factor 1 in levels of treatments factor2*factor3)", "Multiple comparison test (factor 1 in levels of treatments factor2*factor3)","Adjusted means (factor 2 in levels of treatments factor1*factor3)", "Multiple comparison test (factor 2 in levels of treatments factor1*factor3)", "Adjusted means (factor 3 in levels of treatments factor1*factor2)","Multiple comparison test (factor 3 in levels of treatments factor1*factor2)","Residual analysis")
+		pres(m)  
             return(l)
         }
         
@@ -1258,7 +1313,6 @@ return(rp2)
             m7<-lme(response~-1+treatments_f1f2f3, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(treatments_f1f2f3=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
             m8<-lme(response~-1+treatments_f2f1f3, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(treatments_f2f1f3=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
             m9<-lme(response~-1+treatments_f3f1f2, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(treatments_f3f1f2=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            
             res=fr4(m,data)
             adjusted.mean<-round(fixef(m1)[1:nlevels(data$factor_1)],4)
             standard.error<-round(sqrt(diag(vcov(m1)) [1:nlevels(data$factor_1)]),4)
@@ -1407,6 +1461,7 @@ return(rp2)
             names(mft9)=n11
             l<-list(a3,  mf1, test1, mf2,test2,mf3,test3,   mft1,test4,mft2,test5,  mft3,test6,mft4,test7,  mft5,test8,mft6,test9,  mft7,test10, mft8,test11, mft9,test12, res)
             names(l)= list("Marginal anova (Type III Sum of Squares)", "Adjusted means (factor 1)", "Multiple comparison test (factor 1)","Adjusted means (factor 2)", "Multiple comparison test (factor 2)", "Adjusted means (factor 3)", "Multiple comparison test (factor 3)", "Adjusted means (factor 1 in levels of factor 2)", "Multiple comparison test (factor 1 in levels of factor 2)", "Adjusted means (factor 2 in levels of factor 1)", "Multiple comparison test (factor 2 in levels of factor 1)","Adjusted means (factor 1 in levels of factor 3)", "Multiple comparison test (factor 1 in levels of factor 3)", "Adjusted means (factor 3 in levels of factor 1)", "Multiple comparison test (factor 3 in levels of factor 1)","Adjusted means (factor 2 in levels of factor 3)", "Multiple comparison test (factor 2 in levels of factor 3)", "Adjusted means (factor 3 in levels of factor 2)", "Multiple comparison test (factor 3 in levels of factor 2)","Adjusted means (factor 1 in levels of treatments factor2*factor3)", "Multiple comparison test (factor 1 in levels of treatments factor2*factor3)","Adjusted means (factor 2 in levels of treatments factor1*factor3)", "Multiple comparison test (factor 2 in levels of treatments factor1*factor3)", "Adjusted means (factor 3 in levels of treatments factor1*factor2)","Multiple comparison test (factor 3 in levels of treatments factor1*factor2)","Residual analysis")
+		pres(m)  
             return(l)
         }
         
@@ -1598,6 +1653,7 @@ return(rp2)
             names(mft9)=n11
             l<-list(a3,  mf1, test1, mf2,test2,mf3,test3,   mft1,test4,mft2,test5,  mft3,test6,mft4,test7,  mft5,test8,mft6,test9,  mft7,test10, mft8,test11, mft9,test12, res)
             names(l)= list("Marginal anova (Type III Sum of Squares)", "Adjusted means (factor 1)", "Multiple comparison test (factor 1)","Adjusted means (factor 2)", "Multiple comparison test (factor 2)", "Adjusted means (factor 3)", "Multiple comparison test (factor 3)", "Adjusted means (factor 1 in levels of factor 2)", "Multiple comparison test (factor 1 in levels of factor 2)", "Adjusted means (factor 2 in levels of factor 1)", "Multiple comparison test (factor 2 in levels of factor 1)","Adjusted means (factor 1 in levels of factor 3)", "Multiple comparison test (factor 1 in levels of factor 3)", "Adjusted means (factor 3 in levels of factor 1)", "Multiple comparison test (factor 3 in levels of factor 1)","Adjusted means (factor 2 in levels of factor 3)", "Multiple comparison test (factor 2 in levels of factor 3)", "Adjusted means (factor 3 in levels of factor 2)", "Multiple comparison test (factor 3 in levels of factor 2)","Adjusted means (factor 1 in levels of treatments factor2*factor3)", "Multiple comparison test (factor 1 in levels of treatments factor2*factor3)","Adjusted means (factor 2 in levels of treatments factor1*factor3)", "Multiple comparison test (factor 2 in levels of treatments factor1*factor3)", "Adjusted means (factor 3 in levels of treatments factor1*factor2)","Multiple comparison test (factor 3 in levels of treatments factor1*factor2)","Residual analysis")
+		pres(m)  
             return(l)
 }
 
@@ -1685,7 +1741,8 @@ experiment<-levels(data$experiment)
 	    ftt1=function(x){a=data.frame(groups3[x],scott_knott[x])} 
 	    xx1=1:length(groups3) 
             ftr=lapply(xx1, ftt1) 
-	    on=c("tukey","snk","duncan","t","scott_knott");for(i in xx1){names(ftr[[i]])=on} 
+nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.bonferroni", "t.adjust.BH", "t.adjust.BY","t.adjust.fdr")
+	    on=c("tukey","snk","duncan",nam[[p.adjust]],"scott_knott");for(i in xx1){names(ftr[[i]])=on} 
 	    names(ftr)=names(groups3) 
 	    dd<-function(x){l=data.frame(mft1[[x]],ftr[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$experiment))) 
             mft1=lapply(nf1,dd) 
@@ -1700,13 +1757,15 @@ experiment<-levels(data$experiment)
 	    ftt1=function(x){a=data.frame(groups4[x],scott_knott[x])} 
 	    xx1=1:length(groups4) 
             ftr=lapply(xx1, ftt1) 
-	    on=c("tukey","snk","duncan","t","scott_knott");for(i in xx1){names(ftr[[i]])=on} 
+nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.bonferroni", "t.adjust.BH", "t.adjust.BY","t.adjust.fdr")
+	    on=c("tukey","snk","duncan",nam[[p.adjust]],"scott_knott");for(i in xx1){names(ftr[[i]])=on} 
 	    names(ftr)=names(groups4) 
             ddd<-function(x){l=data.frame(mft2[[x]],ftr[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$treatment))) 
             mft2=lapply(nf2,ddd) 
             names(mft2)=n22 
             l<-list(a3,mf1, test1, mf2,test2,mft1,test3, mft2, test4, res) 
             names(l)= list("Analysis of variance", "Adjusted means (treatment)", "Multiple comparison test (treatment)","Adjusted means (experiment)", "Multiple comparison test (experiment)", "Adjusted means (treatment in levels of experiment)", "Multiple comparison test (treatment in levels of experiment)", "Adjusted means (experiment in levels treatment)", "Multiple comparison test (experiment in levels treatment)","Residual analysis") 
+		pres(m)  
             return(l) 
         }
 
@@ -1735,8 +1794,6 @@ names(data) = c("treatments", "squares", "rows", "cols",
             data<-data.frame(data,interaction) 
             m3<-  aov(response ~ -1 + interaction +squares/rows + 
                       columns, data = data, contrasts = list(interaction = contr.sum, rows = contr.sum, columns = contr.sum))
-
-
             data2<-na.omit(data) 
 fr12=function(m,data){
             r=resid(m)
@@ -1807,7 +1864,8 @@ square<-levels(data$squares)
 	    ftt1=function(x){a=data.frame(groups3[x],scott_knott[x])} 
 	    xx1=1:length(groups3) 
             ftr=lapply(xx1, ftt1) 
-	    on=c("tukey","snk","duncan","t","scott_knott");for(i in xx1){names(ftr[[i]])=on} 
+nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.bonferroni", "t.adjust.BH", "t.adjust.BY","t.adjust.fdr")
+	    on=c("tukey","snk","duncan",nam[[p.adjust]],"scott_knott");for(i in xx1){names(ftr[[i]])=on} 
 	    names(ftr)=names(groups3) 
 	    dd<-function(x){l=data.frame(mft1[[x]],ftr[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$squares))) 
             mft1=lapply(nf1,dd) 
@@ -1821,14 +1879,16 @@ square<-levels(data$squares)
 	    names(scott_knott)=rep("scott_knott",length(scott_knott)) 
 	    ftt1=function(x){a=data.frame(groups4[x],scott_knott[x])} 
 	    xx1=1:length(groups4) 
-            ftr=lapply(xx1, ftt1) 
-	    on=c("tukey","snk","duncan","t","scott_knott");for(i in xx1){names(ftr[[i]])=on} 
+            ftr=lapply(xx1, ftt1)
+nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.bonferroni", "t.adjust.BH", "t.adjust.BY","t.adjust.fdr") 
+	    on=c("tukey","snk","duncan",nam[[p.adjust]],"scott_knott");for(i in xx1){names(ftr[[i]])=on} 
 	    names(ftr)=names(groups4) 
             ddd<-function(x){l=data.frame(mft2[[x]],ftr[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$treatments))) 
             mft2=lapply(nf2,ddd) 
             names(mft2)=n22 
             l<-list(a3,mf1, test1, mf2,test2,mft1,test3, mft2, test4, res) 
             names(l)= list("Analysis of variance", "Adjusted means (treatments)", "Multiple comparison test (treatments)","Adjusted means (squares)", "Multiple comparison test (squares)", "Adjusted means (treatments in levels of squares)", "Multiple comparison test (treatments in levels of squares)", "Adjusted means (squares in levels treatments)", "Multiple comparison test (squares in levels treatments)","Residual analysis") 
+		pres(m)  
             return(l) 
         }
 
@@ -1850,8 +1910,7 @@ names(data) = c("treatments", "squares", "rows", "cols",
         m2 <- aov(response ~ -1 + squares+treatments + treatments*squares +squares/rows + 
                       squares/columns, data = data, contrasts = list(treatments = contr.sum, 
                                                           squares = contr.sum, rows = contr.sum, columns = contr.sum))
-
-            a<-anova(m) 
+	           a<-anova(m) 
             a2<-Anova(m, type=3) 
             a3<-a2[-1,] 
             a3<-fa2(a3) 
@@ -1931,7 +1990,8 @@ square<-levels(data$squares)
 	    ftt1=function(x){a=data.frame(groups3[x],scott_knott[x])} 
 	    xx1=1:length(groups3) 
             ftr=lapply(xx1, ftt1) 
-	    on=c("tukey","snk","duncan","t","scott_knott");for(i in xx1){names(ftr[[i]])=on} 
+nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.bonferroni", "t.adjust.BH", "t.adjust.BY","t.adjust.fdr")
+	    on=c("tukey","snk","duncan",nam[[p.adjust]],"scott_knott");for(i in xx1){names(ftr[[i]])=on} 
 	    names(ftr)=names(groups3) 
 	    dd<-function(x){l=data.frame(mft1[[x]],ftr[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$squares))) 
             mft1=lapply(nf1,dd) 
@@ -1946,13 +2006,15 @@ square<-levels(data$squares)
 	    ftt1=function(x){a=data.frame(groups4[x],scott_knott[x])} 
 	    xx1=1:length(groups4) 
             ftr=lapply(xx1, ftt1) 
-	    on=c("tukey","snk","duncan","t","scott_knott");for(i in xx1){names(ftr[[i]])=on} 
+nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.bonferroni", "t.adjust.BH", "t.adjust.BY","t.adjust.fdr")
+	    on=c("tukey","snk","duncan",nam[[p.adjust]],"scott_knott");for(i in xx1){names(ftr[[i]])=on} 
 	    names(ftr)=names(groups4) 
             ddd<-function(x){l=data.frame(mft2[[x]],ftr[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$treatments))) 
             mft2=lapply(nf2,ddd) 
             names(mft2)=n22 
             l<-list(a3,mf1, test1, mf2,test2,mft1,test3, mft2, test4, res) 
             names(l)= list("Analysis of variance", "Adjusted means (treatments)", "Multiple comparison test (treatments)","Adjusted means (squares)", "Multiple comparison test (squares)", "Adjusted means (treatments in levels of squares)", "Multiple comparison test (treatments in levels of squares)", "Adjusted means (squares in levels treatments)", "Multiple comparison test (squares in levels treatments)","Residual analysis") 
+		pres(m)  
             return(l) 
         }
 

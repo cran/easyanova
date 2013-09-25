@@ -9,7 +9,7 @@ Perform analysis of variance and other important complementary analyzes. The fun
 }
 
 \usage{
-ea1(data, design = 1, alpha = 0.05, list = FALSE)
+ea1(data, design = 1, alpha = 0.05, list = FALSE, p.adjust=1, plot=2)
 }
 
 \arguments{
@@ -59,6 +59,12 @@ FALSE = a single response variable
 
 TRUE = multivariable response
 }
+
+\item{p.adjust}{
+1="none"; 2="holm"; 3="hochberg"; 4="hommel"; 5="bonferroni"; 6="BH", 7="BY"; 8="fdr"; for more details see function "p.adjust"}
+
+\item{plot}{ 1 = box plot for residuals; 2 = standardized residuals vs sequence data; 3 = standardized residuals vs theoretical quantiles}
+ 
 }
 \details{
 The response variable must be numeric. Other variables can be numeric or factors.
