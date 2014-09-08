@@ -1,0 +1,12 @@
+citHeader("To cite easyanova in publications, please use:")
+
+citEntry(entry="article", 
+          title = "Package in the R environment for analysis of variance and
+complementary analyses", 
+          author = personList( as.person("Emmanuel Arnhold" )), 
+          year = "2013", 
+          journal = "Brazilian Journal of Veterinary Research and Animal Science", 
+          volume = "50", 
+          issue = "6", 
+          textVersion = "ARNHOLD, E. Package in the R environment for analysis of variance and
+complementary analyses. Brazilian Journal of Veterinary Research and Animal Science, v.50, n.6, p.488-492, 2013.") 

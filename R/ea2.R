@@ -94,12 +94,7 @@ return(rp2)
         
         fr=function(m,data){
             r=resid(m)
-	i=ifelse(length(r)>5000, 2,1)
-	jr=function(r,aa)r+aa-aa
-	jsample=function(r,aa)sample(r,aa)
-	rr=list(jr,jsample)
-	rr=rr[[i]](r,5000)
-            s <- shapiro.test(rr)
+            s <- shapiro.test(r)
             b1<- bartlett.test(r~factor_1, data=data)
             b2<- bartlett.test(r~factor_2, data=data)
             b3<- bartlett.test(r~treatments, data=data)
@@ -116,12 +111,7 @@ return(rp2)
             data=data.frame(data,nr=c(1:length(data$response)))
             data2<-na.omit(data)
             r<-resid(m)
-	i=ifelse(length(r)>5000, 2,1)
-	jr=function(r,aa)r+aa-aa
-	jsample=function(r,aa)sample(r,aa)
-	rr=list(jr,jsample)
-	rr=rr[[i]](r,5000)
-            s<-shapiro.test(rr)
+            s<-shapiro.test(r)
             b1<- bartlett.test(r~plot, data=data2)
             b2<- bartlett.test(r~split.plot, data=data2)
             b3<- bartlett.test(r~treatments, data=data2)
@@ -138,12 +128,7 @@ return(rp2)
         
         fr3=function(m,data){
             r=resid(m)
-	i=ifelse(length(r)>5000, 2,1)
-	jr=function(r,aa)r+aa-aa
-	jsample=function(r,aa)sample(r,aa)
-	rr=list(jr,jsample)
-	rr=rr[[i]](r,5000)
-            s <- shapiro.test(rr)
+            s <- shapiro.test(r)
             b1<- bartlett.test(r~factor_1, data=data)
             b2<- bartlett.test(r~factor_2, data=data)
             b3<- bartlett.test(r~factor_3, data=data)
@@ -159,13 +144,8 @@ return(rp2)
         fr4=function(m,data){
             data=data.frame(data,nr=c(1:length(data$response)))
             data2<-na.omit(data)
-	    r<-resid(m)
-	i=ifelse(length(r)>5000, 2,1)
-	jr=function(r,aa)r+aa-aa
-	jsample=function(r,aa)sample(r,aa)
-	rr=list(jr,jsample)
-	rr=rr[[i]](r,5000)
-            s<-shapiro.test(rr)
+            r<-resid(m)
+            s<-shapiro.test(r)
             b1<- bartlett.test(r~factor_1, data=data2)
             b2<- bartlett.test(r~factor_2, data=data2)
             b3<- bartlett.test(r~factor_3, data=data2)
@@ -1066,10 +1046,13 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             dd<-function(x){l=data.frame(mft7[[x]],groups10[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$treatments_f2f3)))
             mft7=lapply(nf1,dd)
             names(mft7)=n11
-            c1=rep(1:nlevels(data$factor_1), nlevels(data$factor_2));c1=rep(c1,nlevels(data$factor_3))
-            s=rep(0:(nlevels(data$factor_3)-1), each=nlevels(data$treatments_f1f2)); s=2*s; c1=c1+s
+           
+
+
+	c1=rep(1:nlevels(data$factor_1), nlevels(data$factor_2));c1=rep(c1,nlevels(data$factor_3))
+            s=rep(0:(nlevels(data$factor_3)-1), each=nlevels(data$treatments_f1f2)); oi=max(c1); s=oi*s; c1=c1+s
             cs1=split(mat4, c1)
-            test11=lapply(cs1, fm, dff=dff); n1=rep("factor_2 in", nlevels(data$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3)) 
+            test11=lapply(cs1, fm, dff=dff); n1=rep("factor_2 in", nlevels(data$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3))
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test11)=n11
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1078,6 +1061,9 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             dd<-function(x){l=data.frame(mft8[[x]],groups11[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$treatments_f1f3)))
             mft8=lapply(nf1,dd)
             names(mft8)=n11
+
+
+
             c1=rep(1:nlevels(data$treatments_f1f2), nlevels(data$factor_3))
             cs1=split(mat4, c1)
             test12=lapply(cs1, fm, dff=dff); n1=rep("factor_3 in", nlevels(data$treatments_f1f2));n11=data.frame(n1,levels(data$treatments_f1f2)) 
@@ -1243,10 +1229,12 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             dd<-function(x){l=data.frame(mft7[[x]],groups10[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$treatments_f2f3)))
             mft7=lapply(nf1,dd)
             names(mft7)=n11
+
+
             c1=rep(1:nlevels(data$factor_1), nlevels(data$factor_2));c1=rep(c1,nlevels(data$factor_3))
-            s=rep(0:(nlevels(data$factor_3)-1), each=nlevels(data$treatments_f1f2)); s=2*s; c1=c1+s
+            s=rep(0:(nlevels(data$factor_3)-1), each=nlevels(data$treatments_f1f2)); oi=max(c1); s=oi*s; c1=c1+s
             cs1=split(mat4, c1)
-            test11=lapply(cs1, fm, dff=dff); n1=rep("factor_2 in", nlevels(data$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3)) 
+            test11=lapply(cs1, fm, dff=dff); n1=rep("factor_2 in", nlevels(data$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3))
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test11)=n11
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1255,6 +1243,8 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             dd<-function(x){l=data.frame(mft8[[x]],groups11[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$treatments_f1f3)))
             mft8=lapply(nf1,dd)
             names(mft8)=n11
+
+
             c1=rep(1:nlevels(data$treatments_f1f2), nlevels(data$factor_3))
             cs1=split(mat4, c1)
             test12=lapply(cs1, fm, dff=dff); n1=rep("factor_3 in", nlevels(data$treatments_f1f2));n11=data.frame(n1,levels(data$treatments_f1f2)) 
@@ -1436,10 +1426,12 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             dd<-function(x){l=data.frame(mft7[[x]],groups10[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$treatments_f2f3)))
             mft7=lapply(nf1,dd)
             names(mft7)=n11
+
+
             c1=rep(1:nlevels(data$factor_1), nlevels(data$factor_2));c1=rep(c1,nlevels(data$factor_3))
-            s=rep(0:(nlevels(data$factor_3)-1), each=nlevels(data$treatments_f1f2)); s=2*s; c1=c1+s
+            s=rep(0:(nlevels(data$factor_3)-1), each=nlevels(data$treatments_f1f2)); oi=max(c1); s=oi*s; c1=c1+s
             cs1=split(mat4, c1)
-            test11=lapply(cs1, fm, dff=df2); n1=rep("factor_2 in", nlevels(data$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3)) 
+            test11=lapply(cs1, fm, dff=df2); n1=rep("factor_2 in", nlevels(data$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3))
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test11)=n11
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1448,6 +1440,9 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             dd<-function(x){l=data.frame(mft8[[x]],groups11[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$treatments_f1f3)))
             mft8=lapply(nf1,dd)
             names(mft8)=n11
+
+
+
             c1=rep(1:nlevels(data$treatments_f1f2), nlevels(data$factor_3))
             cs1=split(mat4, c1)
             test12=lapply(cs1, fm, dff=df2); n1=rep("factor_3 in", nlevels(data$treatments_f1f2));n11=data.frame(n1,levels(data$treatments_f1f2)) 
@@ -1628,18 +1623,22 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             dd<-function(x){l=data.frame(mft7[[x]],groups10[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$treatments_f2f3)))
             mft7=lapply(nf1,dd)
             names(mft7)=n11
-            c1=rep(1:nlevels(data$factor_1), nlevels(data$factor_2));c1=rep(c1,nlevels(data$factor_3))
-            s=rep(0:(nlevels(data$factor_3)-1), each=nlevels(data$treatments_f1f2)); s=2*s; c1=c1+s
+            
+
+	c1=rep(1:nlevels(data$factor_1), nlevels(data$factor_2));c1=rep(c1,nlevels(data$factor_3))
+            s=rep(0:(nlevels(data$factor_3)-1), each=nlevels(data$treatments_f1f2)); oi=max(c1); 	s=oi*s; c1=c1+s
             cs1=split(mat4, c1)
-            test11=lapply(cs1, fm, dff=df2); n1=rep("factor_2 in", nlevels(data$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3)) 
+            test11=lapply(cs1, fm, dff=df2); n1=rep("factor_2 in", nlevels(data		$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3))
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test11)=n11
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
             groups11=lapply(test11, ft, alpha)
             mft8=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft8[[x]],groups11[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$treatments_f1f3)))
+            dd<-function(x){l=data.frame(mft8[[x]],groups11[[x]]); return(l)}; nf1=as.list(c	(1:nlevels(data$treatments_f1f3)))
             mft8=lapply(nf1,dd)
             names(mft8)=n11
+
+
             c1=rep(1:nlevels(data$treatments_f1f2), nlevels(data$factor_3))
             cs1=split(mat4, c1)
             test12=lapply(cs1, fm, dff=df2); n1=rep("factor_3 in", nlevels(data$treatments_f1f2));n11=data.frame(n1,levels(data$treatments_f1f2)) 
@@ -1701,9 +1700,9 @@ experiment<-levels(data$experiment)
             rownames(maf2)=NULL 
             adjusted.mean<-round(coef(m3)[1:nlevels(data$interaction)],4) 
             standard.error<-round(sqrt(diag(vcov(m3)))[1:nlevels(data$interaction)],4) 
-            treatment<-levels(data$interaction) 
+interaction<-levels(data$interaction) 
  	    means3=adjusted.mean; names(means3)=treatment 
-            mat=data.frame(treatment,adjusted.mean,standard.error) 
+            mat=data.frame(interaction,adjusted.mean,standard.error) 
             rownames(mat)=NULL 
             dff=df.residual(m) 
             test1=fm(maf1,dff) 
@@ -1727,7 +1726,7 @@ experiment<-levels(data$experiment)
             names(test3)=n11 
             c2=rep(1:nlevels(data$treatment), nlevels(data$experiment)) 
             cs2=split(mat, c2) 
-            test4=lapply(cs2, fm, dff=dff); n2=rep("experiment in", nlevels(data$treatment));n22=data.frame(n2,levels(data$experiment)) 
+            test4=lapply(cs2, fm, dff=dff); n2=rep("experiment in", nlevels(data$treatment));n22=data.frame(n2,levels(data$treatment)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ") 
             names(test4)=n22 
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)} 

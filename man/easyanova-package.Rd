@@ -12,8 +12,8 @@ Perform analysis of variance and other important complementary analyzes. The fun
 \tabular{ll}{
 Package: \tab easyanova\cr
 Type: \tab Package\cr
-Version: \tab 3.0\cr
-Date: \tab 2013-09-25\cr
+Version: \tab 4.0\cr
+Date: \tab 2014-09-08\cr
 License: \tab GPL-2\cr
 }
 
