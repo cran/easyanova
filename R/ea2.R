@@ -408,19 +408,19 @@ return(rp2)
             data2<-na.omit(data)
             res=fr(m,data2)
             adjusted.mean<-round(coef(m1)[1:nlevels(data$factor_1)],4)
-            standard.error<-round(sqrt(diag(vcov(m1)) [1:nlevels(data$factor_1)]),4)
+            standard.error<-round(sderrs(m1)[1:nlevels(data$factor_1)],4)
             factor_1<-levels(data$factor_1)
  	    means1=adjusted.mean; names(means1)=factor_1
             maf1=data.frame(factor_1,adjusted.mean,standard.error)
             rownames(maf1)=NULL
             adjusted.mean<-round(coef(m2)[1:nlevels(data$factor_2)],4)
-            standard.error<-round(sqrt(diag(vcov(m2))) [1:nlevels(data$factor_2)],4)
+            standard.error<-round(sderrs(m2) [1:nlevels(data$factor_2)],4)
             factor_2<-levels(data$factor_2)
  	    means2=adjusted.mean; names(means2)=factor_2
             maf2=data.frame(factor_2,adjusted.mean,standard.error)
             rownames(maf2)=NULL
             adjusted.mean<-round(coef(m3),4)
-            standard.error<-round(sqrt(diag(vcov(m3))),4)
+            standard.error<-round(sderrs(m3),4)
             treatment<-levels(data$t)
             mat=data.frame(treatment,adjusted.mean,standard.error)
             rownames(mat)=NULL
@@ -503,19 +503,19 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             data2<-na.omit(data)
             res=fr(m,data2)
             adjusted.mean<-round(coef(m1)[1:nlevels(data$factor_1)],4)
-            standard.error<-round(sqrt(diag(vcov(m1)) [1:nlevels(data$factor_1)]),4)
+            standard.error<-round(sderrs(m1)[1:nlevels(data$factor_1)],4)
             factor_1<-levels(data$factor_1)
  	    means1=adjusted.mean; names(means1)=factor_1
             maf1=data.frame(factor_1,adjusted.mean,standard.error)
             rownames(maf1)=NULL
             adjusted.mean<-coef(m2)[1:nlevels(data$factor_2)]
-            standard.error<-round(sqrt(diag(vcov(m2)))[1:nlevels(data$factor_2)],4)
+            standard.error<-round(sderrs(m2)[1:nlevels(data$factor_2)],4)
             factor_2<-levels(data$factor_2)
  	    means2=adjusted.mean; names(means2)=factor_2
             maf2=data.frame(factor_2,adjusted.mean,standard.error)
             rownames(maf2)=NULL
             adjusted.mean<-round(coef(m3)[1:nlevels(data$treatments)],4)
-            standard.error<-round(sqrt(diag(vcov(m3)))[1:nlevels(data$factor_2)],4)
+            standard.error<-round(sderrs(m3)[1:nlevels(data$factor_2)],4)
             treatment<-levels(data$treatments)
  	    means3=adjusted.mean; names(means3)=treatment
             mat=data.frame(treatment,adjusted.mean,standard.error)
@@ -600,19 +600,19 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
 	    data2<-na.omit(data)
             res=fr(m,data2)
             adjusted.mean<-round(coef(m1)[1:nlevels(data$factor_1)],4)
-            standard.error<-round(sqrt(diag(vcov(m1)) [1:nlevels(data$factor_1)]),4)
+            standard.error<-round(sderrs(m1) [1:nlevels(data$factor_1)],4)
             factor_1<-levels(data$factor_1)
  	    means1=adjusted.mean; names(means1)=factor_1
             maf1=data.frame(factor_1,adjusted.mean,standard.error)
             rownames(maf1)=NULL
             adjusted.mean<-coef(m2)[1:nlevels(data$factor_2)]
-            standard.error<-round(sqrt(diag(vcov(m2)))[1:nlevels(data$factor_2)],4)
+            standard.error<-round(sderrs(m2)[1:nlevels(data$factor_2)],4)
             factor_2<-levels(data$factor_2)
  	    means2=adjusted.mean; names(means2)=factor_2
             maf2=data.frame(factor_2,adjusted.mean,standard.error)
             rownames(maf2)=NULL
             adjusted.mean<-round(coef(m3)[1:nlevels(data$treatments)],4)
-            standard.error<-round(sqrt(diag(vcov(m3)))[1:nlevels(data$factor_2)],4)
+            standard.error<-round(sderrs(m3)[1:nlevels(data$factor_2)],4)
             treatment<-levels(data$t)
  	    means3=adjusted.mean; names(means3)=treatment
             mat=data.frame(treatment,adjusted.mean,standard.error)
@@ -706,15 +706,16 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             b<-anova(m, type="marginal")[-1,]
             m1<-lme(response~-1+ treatments, random=~1|subject, data=data, na.action=na.omit, contrasts=list(treatments=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
             am<-fixef(m1)[1:nlevels(data$treatments)]
-            c<-data.frame(levels(treatments), round(am,4), round(sqrt(diag(vcov(m1)))[1:nlevels(data$treatments)],4))
+            c<-data.frame(levels(treatments), round(am,4),
+                          round(sderrs(m1)[1:nlevels(data$treatments)],4))
             colnames(c)<-c("plot*split.plot","adjusted.means", "standard.error")
             rownames(c)<-NULL
             df1<- anova(m) $"denDF"[2]
             df2<- anova(m) $"denDF"[1]
             mm1<-lme(response~-1+plot*split.plot, random=~1|subject, data=data, na.action=na.omit, contrasts=list(plot=contr.sum, split.plot=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000,  niterEM=2000, opt="optim"))
             mm2<-lme(response~-1+split.plot*plot, random=~1|subject, data=data, na.action=na.omit, contrasts=list(split.plot=contr.sum, plot=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
-            a11<-data.frame(levels(data$plot), round(fixef(mm1)[1:nlevels(data$plot)],4), round(sqrt(diag(vcov(mm1)))[1:nlevels(data$plot)],4))
-            a22<-data.frame(levels(data$split.plot), round(fixef(mm2)[1:nlevels(data$split.plot)],4), round(sqrt(diag(vcov(mm2)))[1:nlevels(data$split.plot)],4))
+            a11<-data.frame(levels(data$plot), round(fixef(mm1)[1:nlevels(data$plot)],4), round(sderrs(mm1)[1:nlevels(data$plot)],4))
+            a22<-data.frame(levels(data$split.plot), round(fixef(mm2)[1:nlevels(data$split.plot)],4), round(sderrs(mm2)[1:nlevels(data$split.plot)],4))
  	    colnames(a11)<-c("plot","adjusted.mean", "standard.error")
             rownames(a11)<-NULL
             colnames(a22)<-c("split.plot","adjusted.mean", "standard.error")
@@ -778,15 +779,15 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             b<-anova(m, type="marginal")[-1,]
             m1<-lme(response~-1+ treatments+block, random=~1|subject, data=data, na.action=na.omit, contrasts=list(treatments=contr.sum, block=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
             am<-fixef(m1)[1:nlevels(data$ treatments)]
-            c<-data.frame(levels(treatments), round(am,4), round(sqrt(diag(vcov(m1)))[1:nlevels(data$ treatments)],4))
+            c<-data.frame(levels(treatments), round(am,4), round(sderrs(m1)[1:nlevels(data$ treatments)],4))
             colnames(c)<-c("plot*split.plot","adjusted.mean", "standard.error")
             rownames(c)<-NULL
             df1<- anova(m) $"denDF"[2]
             df2<- anova(m) $"denDF"[1]
             mm1<-lme(response~-1+plot*split.plot+block, random=~1|subject, data=data, na.action=na.omit, contrasts=list(plot=contr.sum, split.plot=contr.sum, block=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
             mm2<-lme(response~-1+split.plot*plot+block, random=~1|subject, data=data, na.action=na.omit, contrasts=list(split.plot=contr.sum, plot=contr.sum, block=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
-            a11<-data.frame(levels(data$plot), round(fixef(mm1)[1:nlevels(data$plot)],4), round(sqrt(diag(vcov(mm1)))[1:nlevels(data$plot)],4))
-            a22<-data.frame(levels(data$split.plot), round(fixef(mm2)[1:nlevels(data$split.plot)],4), round(sqrt(diag(vcov(mm2)))[1:nlevels(data$split.plot)],4))
+            a11<-data.frame(levels(data$plot), round(fixef(mm1)[1:nlevels(data$plot)],4), round(sderrs(mm1)[1:nlevels(data$plot)],4))
+            a22<-data.frame(levels(data$split.plot), round(fixef(mm2)[1:nlevels(data$split.plot)],4), round(sderrs(mm2)[1:nlevels(data$split.plot)],4))
             colnames(a11)<-c("plot","adjusted.mean", "standard.error")
             rownames(a11)<-NULL
             colnames(a22)<-c("split.plot","adjusted.mean", "standard.error")
@@ -850,15 +851,19 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             b<-anova(m, type="marginal")[-1,]
             m1<-lme(response~-1+ treatments+row+column, random=~1|subject, data=data, na.action=na.omit, contrasts=list(treatments=contr.sum, column=contr.sum, row=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000,  opt="optim"))
             am<-fixef(m1)[1:nlevels(data$ treatments)]
-            c<-data.frame(levels(treatments), round(am,4), round(sqrt(diag(vcov(m1)))[1:nlevels(data$ treatments)],4))
+            c<-data.frame(levels(treatments), round(am,4), round(sderrs(m1)[1:nlevels(data$ treatments)],4))
             colnames(c)<-c("plot*split.plot","adjusted.mean", "standard.error")
             rownames(c)<-NULL
             df1<- anova(m) $"denDF"[2]
             df2<- anova(m) $"denDF"[1]
             mm1<-lme(response~-1+plot*split.plot+row+column, random=~1|subject, data=data, na.action=na.omit, contrasts=list(plot=contr.sum, split.plot=contr.sum, column=contr.sum, row=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
             mm2<-lme(response~-1+split.plot*plot+row+column, random=~1|subject, data=data, na.action=na.omit, contrasts=list(split.plot=contr.sum, plot=contr.sum, column=contr.sum, row=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
-            a11<-data.frame(levels(data$plot), round(fixef(mm1)[1:nlevels(data$plot)],4), round(sqrt(diag(vcov(mm1))[1:nlevels(data$plot)]),4))
-            a22<-data.frame(levels(data$split.plot), round(fixef(mm2)[1:nlevels(data$split.plot)],4), round(sqrt(diag(vcov(mm2)))[1:nlevels(data$split.plot)],4))
+            a11<-data.frame(levels(data$plot),
+                            round( fixef(mm1)[1:nlevels(data$plot)], 4),
+                            round(sderrs(mm1)[1:nlevels(data$plot)], 4))
+            a22<-data.frame(levels(data$split.plot),
+                            round( fixef(mm2)[1:nlevels(data$split.plot)],4),
+                            round(sderrs(mm2)[1:nlevels(data$split.plot)],4))
             colnames(a11)<-c("plot","adjusted.mean", "standard.error")
             rownames(a11)<-NULL
             colnames(a22)<-c("split.plot","adjusted.mean", "standard.error")
@@ -924,38 +929,38 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             m8<-aov(response~-1+treatments_f2f1f3,data=data, contrasts=list(treatments_f2f1f3=contr.sum))
             m9<-aov(response~-1+treatments_f3f1f2,data=data, contrasts=list(treatments_f3f1f2=contr.sum))
             
-            adjusted.mean<-round(coef(m1)[1:nlevels(data$factor_1)],4)
-            standard.error<-round(sqrt(diag(vcov(m1)) [1:nlevels(data$factor_1)]),4)
+            adjusted.mean <-round(  coef(m1)[1:nlevels(data$factor_1)],4)
+            standard.error<-round(sderrs(m1)[1:nlevels(data$factor_1)], 4)
             factor_1<-levels(data$factor_1)
             maf1=data.frame(factor_1,adjusted.mean,standard.error)
             rownames(maf1)=NULL
-            adjusted.mean<-round(coef(m2) [1:nlevels(data$factor_2)],4)
-            standard.error<-round(sqrt(diag(vcov(m2))) [1:nlevels(data$factor_2)],4)
+            adjusted.mean <-round(  coef(m2)[1:nlevels(data$factor_2)],4)
+            standard.error<-round(sderrs(m2)[1:nlevels(data$factor_2)],4)
             factor_2<-levels(data$factor_2)
             maf2=data.frame(factor_2,adjusted.mean,standard.error)
             rownames(maf2)=NULL
-            adjusted.mean<-round(coef(m3) [1:nlevels(data$factor_3)],4)
-            standard.error<-round(sqrt(diag(vcov(m3))) [1:nlevels(data$factor_3)],4)
+            adjusted.mean<- round(  coef(m3)[1:nlevels(data$factor_3)],4)
+            standard.error<-round(sderrs(m3)[1:nlevels(data$factor_3)],4)
             factor_3<-levels(data$factor_3)
             maf3=data.frame(factor_3,adjusted.mean,standard.error)
             rownames(maf3)=NULL
             adjusted.mean<-round(coef(m4)[1:nlevels(data$treatments_f1f2)],4)
-            standard.error<-round(sqrt(diag(vcov(m4)))[1:nlevels(data$treatments_f1f2)],4)
+            standard.error<-round(sderrs(m4)[1:nlevels(data$treatments_f1f2)],4)
             treatments_f1f2<-levels(data$treatments_f1f2)
             mat1=data.frame(treatments_f1f2,adjusted.mean,standard.error)
             rownames(mat1)=NULL
             adjusted.mean<-round(coef(m5)[1:nlevels(data$treatments_f1f3)],4)
-            standard.error<-round(sqrt(diag(vcov(m5)))[1:nlevels(data$treatments_f1f3)],4)
+            standard.error<-round(sderrs(m5)[1:nlevels(data$treatments_f1f3)],4)
             treatments_f1f3<-levels(data$treatments_f1f3)
             mat2=data.frame(treatments_f1f3,adjusted.mean,standard.error)
             rownames(mat2)=NULL
             adjusted.mean<-round(coef(m6)[1:nlevels(data$treatments_f2f3)],4)
-            standard.error<-round(sqrt(diag(vcov(m6)))[1:nlevels(data$treatments_f2f3)],4)
+            standard.error<-round(sderrs(m6)[1:nlevels(data$treatments_f2f3)],4)
             treatments_f2f3<-levels(data$treatments_f2f3)
             mat3=data.frame(treatments_f2f3,adjusted.mean,standard.error)
             rownames(mat3)=NULL
             adjusted.mean<-round(coef(m7)[1:nlevels(data$treatments_f1f2f3)],4)
-            standard.error<-round(sqrt(diag(vcov(m7)))[1:nlevels(data$treatments_f1f2f3)],4)
+            standard.error<-round(sderrs(m7)[1:nlevels(data$treatments_f1f2f3)],4)
             treatments_f1f2f3<-levels(data$treatments_f1f2f3)
             mat4=data.frame(treatments_f1f2f3,adjusted.mean,standard.error)
             rownames(mat4)=NULL
@@ -1108,37 +1113,37 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             m9<-aov(response~-1+treatments_f3f1f2+ blocks,data=data, contrasts=list(treatments_f3f1f2=contr.sum, blocks=contr.sum))
             
             adjusted.mean<-round(coef(m1)[1:nlevels(data$factor_1)],4)
-            standard.error<-round(sqrt(diag(vcov(m1)) [1:nlevels(data$factor_1)]),4)
+            standard.error<-round(sderrs(m1) [1:nlevels(data$factor_1)], 4)
             factor_1<-levels(data$factor_1)
             maf1=data.frame(factor_1,adjusted.mean,standard.error)
             rownames(maf1)=NULL
-            adjusted.mean<-round(coef(m2) [1:nlevels(data$factor_2)],4)
-            standard.error<-round(sqrt(diag(vcov(m2))) [1:nlevels(data$factor_2)],4)
+            adjusted.mean <-round(  coef(m2)[1:nlevels(data$factor_2)],4)
+            standard.error<-round(sderrs(m2)[1:nlevels(data$factor_2)],4)
             factor_2<-levels(data$factor_2)
             maf2=data.frame(factor_2,adjusted.mean,standard.error)
             rownames(maf2)=NULL
             adjusted.mean<-round(coef(m3) [1:nlevels(data$factor_3)],4)
-            standard.error<-round(sqrt(diag(vcov(m3))) [1:nlevels(data$factor_3)],4)
+            standard.error<-round(sderrs(m3)[1:nlevels(data$factor_3)],4)
             factor_3<-levels(data$factor_3)
             maf3=data.frame(factor_3,adjusted.mean,standard.error)
             rownames(maf3)=NULL
             adjusted.mean<-round(coef(m4)[1:nlevels(data$treatments_f1f2)],4)
-            standard.error<-round(sqrt(diag(vcov(m4)))[1:nlevels(data$treatments_f1f2)],4)
+            standard.error<-round(sderrs(m4)[1:nlevels(data$treatments_f1f2)],4)
             treatments_f1f2<-levels(data$treatments_f1f2)
             mat1=data.frame(treatments_f1f2,adjusted.mean,standard.error)
             rownames(mat1)=NULL
             adjusted.mean<-round(coef(m5)[1:nlevels(data$treatments_f1f3)],4)
-            standard.error<-round(sqrt(diag(vcov(m5)))[1:nlevels(data$treatments_f1f3)],4)
+            standard.error<-round(sderrs(m5)[1:nlevels(data$treatments_f1f3)],4)
             treatments_f1f3<-levels(data$treatments_f1f3)
             mat2=data.frame(treatments_f1f3,adjusted.mean,standard.error)
             rownames(mat2)=NULL
             adjusted.mean<-round(coef(m6)[1:nlevels(data$treatments_f2f3)],4)
-            standard.error<-round(sqrt(diag(vcov(m6)))[1:nlevels(data$treatments_f2f3)],4)
+            standard.error<-round(sderrs(m6)[1:nlevels(data$treatments_f2f3)],4)
             treatments_f2f3<-levels(data$treatments_f2f3)
             mat3=data.frame(treatments_f2f3,adjusted.mean,standard.error)
             rownames(mat3)=NULL
             adjusted.mean<-round(coef(m7)[1:nlevels(data$treatments_f1f2f3)],4)
-            standard.error<-round(sqrt(diag(vcov(m7)))[1:nlevels(data$treatments_f1f2f3)],4)
+            standard.error<-round(sderrs(m7)[1:nlevels(data$treatments_f1f2f3)],4)
             treatments_f1f2f3<-levels(data$treatments_f1f2f3)
             mat4=data.frame(treatments_f1f2f3,adjusted.mean,standard.error)
             rownames(mat4)=NULL
@@ -1305,37 +1310,37 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             m9<-lme(response~-1+treatments_f3f1f2, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(treatments_f3f1f2=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
             res=fr4(m,data)
             adjusted.mean<-round(fixef(m1)[1:nlevels(data$factor_1)],4)
-            standard.error<-round(sqrt(diag(vcov(m1)) [1:nlevels(data$factor_1)]),4)
+            standard.error<-round(sderrs(m1)[1:nlevels(data$factor_1)], 4)
             factor_1<-levels(data$factor_1)
             maf1=data.frame(factor_1,adjusted.mean,standard.error)
             rownames(maf1)=NULL
             adjusted.mean<-round(fixef(m2) [1:nlevels(data$factor_2)],4)
-            standard.error<-round(sqrt(diag(vcov(m2))) [1:nlevels(data$factor_2)],4)
+            standard.error<-round(sderrs(m2)[1:nlevels(data$factor_2)],4)
             factor_2<-levels(data$factor_2)
             maf2=data.frame(factor_2,adjusted.mean,standard.error)
             rownames(maf2)=NULL
             adjusted.mean<-round(fixef(m3) [1:nlevels(data$factor_3)],4)
-            standard.error<-round(sqrt(diag(vcov(m3))) [1:nlevels(data$factor_3)],4)
+            standard.error<-round(sderrs(m3)[1:nlevels(data$factor_3)],4)
             factor_3<-levels(data$factor_3)
             maf3=data.frame(factor_3,adjusted.mean,standard.error)
             rownames(maf3)=NULL
             adjusted.mean<-round(fixef(m4)[1:nlevels(data$treatments_f1f2)],4)
-            standard.error<-round(sqrt(diag(vcov(m4)))[1:nlevels(data$treatments_f1f2)],4)
+            standard.error<-round(sderrs(m4)[1:nlevels(data$treatments_f1f2)],4)
             treatments_f1f2<-levels(data$treatments_f1f2)
             mat1=data.frame(treatments_f1f2,adjusted.mean,standard.error)
             rownames(mat1)=NULL
             adjusted.mean<-round(fixef(m5)[1:nlevels(data$treatments_f1f3)],4)
-            standard.error<-round(sqrt(diag(vcov(m5)))[1:nlevels(data$treatments_f1f3)],4)
+            standard.error<-round(sderrs(m5)[1:nlevels(data$treatments_f1f3)],4)
             treatments_f1f3<-levels(data$treatments_f1f3)
             mat2=data.frame(treatments_f1f3,adjusted.mean,standard.error)
             rownames(mat2)=NULL
             adjusted.mean<-round(fixef(m6)[1:nlevels(data$treatments_f2f3)],2)
-            standard.error<-round(sqrt(diag(vcov(m6)))[1:nlevels(data$treatments_f2f3)],2)
+            standard.error<-round(sderrs(m6)[1:nlevels(data$treatments_f2f3)],2)
             treatments_f2f3<-levels(data$treatments_f2f3)
             mat3=data.frame(treatments_f2f3,adjusted.mean,standard.error)
             rownames(mat3)=NULL
             adjusted.mean<-round(fixef(m7)[1:nlevels(data$treatments_f1f2f3)],4)
-            standard.error<-round(sqrt(diag(vcov(m7)))[1:nlevels(data$treatments_f1f2f3)],4)
+            standard.error<-round(sderrs(m7)[1:nlevels(data$treatments_f1f2f3)],4)
             treatments_f1f2f3<-levels(data$treatments_f1f2f3)
             mat4=data.frame(treatments_f1f2f3,adjusted.mean,standard.error)
             rownames(mat4)=NULL
@@ -1503,37 +1508,37 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             
             res=fr4(m,data)
             adjusted.mean<-round(fixef(m1)[1:nlevels(data$factor_1)],4)
-            standard.error<-round(sqrt(diag(vcov(m1)) [1:nlevels(data$factor_1)]),4)
+            standard.error<-round(sderrs(m1)[1:nlevels(data$factor_1)], 4)
             factor_1<-levels(data$factor_1)
             maf1=data.frame(factor_1,adjusted.mean,standard.error)
             rownames(maf1)=NULL
             adjusted.mean<-round(fixef(m2) [1:nlevels(data$factor_2)],4)
-            standard.error<-round(sqrt(diag(vcov(m2))) [1:nlevels(data$factor_2)],4)
+            standard.error<-round(sderrs(m2)[1:nlevels(data$factor_2)],4)
             factor_2<-levels(data$factor_2)
             maf2=data.frame(factor_2,adjusted.mean,standard.error)
             rownames(maf2)=NULL
             adjusted.mean<-round(fixef(m3) [1:nlevels(data$factor_3)],4)
-            standard.error<-round(sqrt(diag(vcov(m3))) [1:nlevels(data$factor_3)],4)
+            standard.error<-round(sderrs(m3)[1:nlevels(data$factor_3)],4)
             factor_3<-levels(data$factor_3)
             maf3=data.frame(factor_3,adjusted.mean,standard.error)
             rownames(maf3)=NULL
             adjusted.mean<-round(fixef(m4)[1:nlevels(data$treatments_f1f2)],4)
-            standard.error<-round(sqrt(diag(vcov(m4)))[1:nlevels(data$treatments_f1f2)],4)
+            standard.error<-round(sderrs(m4)[1:nlevels(data$treatments_f1f2)],4)
             treatments_f1f2<-levels(data$treatments_f1f2)
             mat1=data.frame(treatments_f1f2,adjusted.mean,standard.error)
             rownames(mat1)=NULL
             adjusted.mean<-round(fixef(m5)[1:nlevels(data$treatments_f1f3)],4)
-            standard.error<-round(sqrt(diag(vcov(m5)))[1:nlevels(data$treatments_f1f3)],4)
+            standard.error<-round(sderrs(m5)[1:nlevels(data$treatments_f1f3)],4)
             treatments_f1f3<-levels(data$treatments_f1f3)
             mat2=data.frame(treatments_f1f3,adjusted.mean,standard.error)
             rownames(mat2)=NULL
             adjusted.mean<-round(fixef(m6)[1:nlevels(data$treatments_f2f3)],2)
-            standard.error<-round(sqrt(diag(vcov(m6)))[1:nlevels(data$treatments_f2f3)],2)
+            standard.error<-round(sderrs(m6)[1:nlevels(data$treatments_f2f3)],2)
             treatments_f2f3<-levels(data$treatments_f2f3)
             mat3=data.frame(treatments_f2f3,adjusted.mean,standard.error)
             rownames(mat3)=NULL
             adjusted.mean<-round(fixef(m7)[1:nlevels(data$treatments_f1f2f3)],4)
-            standard.error<-round(sqrt(diag(vcov(m7)))[1:nlevels(data$treatments_f1f2f3)],4)
+            standard.error<-round(sderrs(m7)[1:nlevels(data$treatments_f1f2f3)],4)
             treatments_f1f2f3<-levels(data$treatments_f1f2f3)
             mat4=data.frame(treatments_f1f2f3,adjusted.mean,standard.error)
             rownames(mat4)=NULL
@@ -1687,19 +1692,19 @@ fr11=function(m,data){
             return(d)}
             res=fr11(m,data2) 
             adjusted.mean<-round(coef(m1)[1:nlevels(data$treatment)],4) 
-            standard.error<-round(sqrt(diag(vcov(m1)) [1:nlevels(data$treatment)]),4) 
+            standard.error<-round(sderrs(m1)[1:nlevels(data$treatment)], 4) 
 treatment<-levels(data$treatment) 
  	    means1=adjusted.mean; names(means1)=treatment 
             maf1=data.frame(treatment,adjusted.mean,standard.error) 
             rownames(maf1)=NULL 
             adjusted.mean<-coef(m2)[1:nlevels(data$experiment)] 
-            standard.error<-round(sqrt(diag(vcov(m2)))[1:nlevels(data$experiment)],4) 
+            standard.error<-round(sderrs(m2)[1:nlevels(data$experiment)],4) 
 experiment<-levels(data$experiment) 
  	    means2=adjusted.mean; names(means2)=experiment 
             maf2=data.frame(experiment,adjusted.mean,standard.error) 
             rownames(maf2)=NULL 
             adjusted.mean<-round(coef(m3)[1:nlevels(data$interaction)],4) 
-            standard.error<-round(sqrt(diag(vcov(m3)))[1:nlevels(data$interaction)],4) 
+            standard.error<-round(sderrs(m3)[1:nlevels(data$interaction)],4) 
 interaction<-levels(data$interaction) 
  	    means3=adjusted.mean; names(means3)=treatment 
             mat=data.frame(interaction,adjusted.mean,standard.error) 
@@ -1810,19 +1815,19 @@ fr12=function(m,data){
             return(d)}
             res=fr12(m,data2) 
             adjusted.mean<-round(coef(m1)[1:nlevels(data$treatments)],4) 
-            standard.error<-round(sqrt(diag(vcov(m1)) [1:nlevels(data$treatments)]),4) 
+            standard.error<-round(sderrs(m1)[1:nlevels(data$treatments)], 4) 
 treatment<-levels(data$treatments) 
  	    means1=adjusted.mean; names(means1)=treatment 
             maf1=data.frame(treatment,adjusted.mean,standard.error) 
             rownames(maf1)=NULL 
             adjusted.mean<-coef(m2)[1:nlevels(data$squares)] 
-            standard.error<-round(sqrt(diag(vcov(m2)))[1:nlevels(data$squares)],4) 
+            standard.error<-round(sderrs(m2)[1:nlevels(data$squares)],4) 
 square<-levels(data$squares) 
  	    means2=adjusted.mean; names(means2)=square 
             maf2=data.frame(square,adjusted.mean,standard.error) 
             rownames(maf2)=NULL 
             adjusted.mean<-round(coef(m3)[1:nlevels(data$interaction)],4) 
-            standard.error<-round(sqrt(diag(vcov(m3)))[1:nlevels(data$interaction)],4) 
+            standard.error<-round(sderrs(m3)[1:nlevels(data$interaction)],4) 
             interaction<-levels(data$interaction) 
  	    means3=adjusted.mean; names(means3)=interaction 
             mat=data.frame(interaction,adjusted.mean,standard.error) 
@@ -1936,19 +1941,19 @@ fr12=function(m,data){
             return(d)}
             res=fr12(m,data2) 
             adjusted.mean<-round(coef(m1)[1:nlevels(data$treatments)],4) 
-            standard.error<-round(sqrt(diag(vcov(m1)) [1:nlevels(data$treatments)]),4) 
+            standard.error<-round(sderrs(m1)[1:nlevels(data$treatments)], 4) 
 treatment<-levels(data$treatments) 
  	    means1=adjusted.mean; names(means1)=treatment 
             maf1=data.frame(treatment,adjusted.mean,standard.error) 
             rownames(maf1)=NULL 
             adjusted.mean<-coef(m2)[1:nlevels(data$squares)] 
-            standard.error<-round(sqrt(diag(vcov(m2)))[1:nlevels(data$squares)],4) 
+            standard.error<-round(sderrs(m2)[1:nlevels(data$squares)],4) 
 square<-levels(data$squares) 
  	    means2=adjusted.mean; names(means2)=square 
             maf2=data.frame(square,adjusted.mean,standard.error) 
             rownames(maf2)=NULL 
             adjusted.mean<-round(coef(m3)[1:nlevels(data$interaction)],4) 
-            standard.error<-round(sqrt(diag(vcov(m3)))[1:nlevels(data$interaction)],4) 
+            standard.error<-round(sderrs(m3)[1:nlevels(data$interaction)],4) 
             interaction<-levels(data$interaction) 
  	    means3=adjusted.mean; names(means3)=interaction 
             mat=data.frame(interaction,adjusted.mean,standard.error) 

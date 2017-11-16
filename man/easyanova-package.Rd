@@ -3,7 +3,7 @@
 \alias{easyanova}
 \docType{package}
 \title{
-Analysis of variance and other important complementary analyzes
+Analysis of Variance and Other Important Complementary Analyzes
 }
 \description{
 Perform analysis of variance and other important complementary analyzes. The functions are easy to use. Performs analysis in various designs, with balanced and unbalanced data.
@@ -12,8 +12,8 @@ Perform analysis of variance and other important complementary analyzes. The fun
 \tabular{ll}{
 Package: \tab easyanova\cr
 Type: \tab Package\cr
-Version: \tab 4.0\cr
-Date: \tab 2014-09-08\cr
+Version: \tab 5.0\cr
+Date: \tab 2017-11-14\cr
 License: \tab GPL-2\cr
 }
 

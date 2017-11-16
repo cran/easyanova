@@ -150,18 +150,18 @@ names(results[1][[1]])
 
 # analysis with a covariate
 # Kaps and Lamberson (2009)
-data(data10)
+# data(data10)
 
 # analysis in completely randomized design
-r6<-ea1(data10[-3], design=5)
+# r6<-ea1(data10[-3], design=5)
 
-r6
+# r6
 
 
 # incomplete blocks type I and II
 # Pimentel Gomes and Garcia (2002)
-data(data11)
-data(data12)
+# data(data11)
+# data(data12)
 
 #r7<-ea1(data11,design=7)
 #r8<-ea1(data12,design=7)
@@ -171,7 +171,7 @@ data(data12)
 
 # incomplete blocks type III or augmented blocks 
 # Cruz and Carneiro (2006)
-data(data13)
+# data(data13)
 
 #r9<-ea1(data13, design=8)
 #r9
@@ -180,14 +180,14 @@ data(data13)
 
 # incomplete blocks type III in animal experiments
 # Sampaio (2010)
-data(data14)
+# data(data14)
 
-r10<-ea1(data14, design=9)
-r10
+# r10<-ea1(data14, design=9)
+# r10
 
 # lattice 
 # Pimentel Gomes and Garcia (2002)
-data(data15)
+# data(data15)
 
 #r11<-ea1(data15, design=10) # intra-block analysis 
 #r12<-ea1(data15, design=11) # inter-block analysis
@@ -197,15 +197,15 @@ data(data15)
 
 # switchback design
 # Sampaio (2010)
-data(data16)
-r13<-ea1(data16, design=12)
-r13
+# data(data16)
+# r13<-ea1(data16, design=12)
+# r13
 
 # switchback design in blocks
 # Sanders and Gaynor (1987)
-data(data17)
-r14<-ea1(data17, design=13)
-r14
+# data(data17)
+# r14<-ea1(data17, design=13)
+# r14
 
 #Kruskal-Wallis Rank Sum Test
 r15<-ea1(data1, design=14)

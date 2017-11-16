@@ -1,3 +1,14 @@
-exportPattern("^[[:alpha:]]+")
+importFrom("graphics", abline, axis, boxplot, text)
+importFrom("stats", AIC, BIC, aggregate, anova, aov,
+           bartlett.test, coef, contr.sum, deviance,
+           df.residual, fitted, lm, median, na.omit,
+           pchisq, pnorm, pt, ptukey, qchisq, qqline,
+           qqnorm, resid, shapiro.test, terms, vcov)
+importFrom("utils", combn)
+
+## "FIXME": only import what's needed, using  importFrom() as above:
 import(nlme)
 import(car)
+
+##------------------ Export these (and no utility functions):
+export(ea1, ea2, ec)
