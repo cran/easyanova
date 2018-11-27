@@ -1,5 +1,5 @@
 ea2 <-
-function(data, design=1, alpha=0.05, cov=4, list=FALSE, p.adjust=1, plot=2)
+function(data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2, adjust="tukey")
     {
         list=ifelse(list==FALSE,1,2)
 
@@ -204,6 +204,10 @@ return(rp2)
         colnames(ggs)=c("pair", "contrast","p(tukey)", "p(snk)", "p(duncan)", nam[[p.adjust]])
         return(ggs)
     }
+
+ 
+
+
         ft=function(test, alpha=0.05){
             level=alpha
             tes1=test[,3]
@@ -392,7 +396,7 @@ return(rp2)
         }
 		
 	                
-        f1<-function(data,cov){ 
+        f1<-function(data){ 
             names(data)=c("factor_1","factor_2","response")
             data<-data.frame(factor_1=factor(data$factor_1), factor_2=factor(data$factor_2), response=data$response)
             m<-aov(response~factor_1*factor_2,data=data, contrasts=list(factor_1=contr.sum, factor_2=contr.sum))
@@ -487,7 +491,7 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
 		pres(m)  
             return(l)}
         
-            f2<-function(data, cov){ 
+            f2<-function(data){ 
             names(data)=c("factor_1","factor_2","blocks","response")
             data<-data.frame(factor_1=factor(data$factor_1), factor_2=factor(data$factor_2), blocks=factor(data$blocks), response=data$response)
             m<-aov(response~factor_1*factor_2+blocks,data=data, contrasts=list(factor_1=contr.sum, factor_2=contr.sum, blocks=contr.sum))
@@ -584,7 +588,7 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             return(l)
         }
         
-        f3<-function(data, cov){ 
+        f3<-function(data){ 
             names(data)=c("factor_1","factor_2","rows","cols","response")
             data<-data.frame(factor_1=factor(data$factor_1), factor_2=factor(data$factor_2), rows=factor(data$rows), columns=factor(data$cols), response=data$response)
             m<-aov(response~factor_1*factor_2+ rows+columns,data=data, contrasts=list(factor_1=contr.sum, factor_2=contr.sum, rows=contr.sum, columns=contr.sum))
@@ -681,229 +685,83 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             return(l)
         }
         
-        f4<-function(data, cov){
-            gg<-cov
+        f4<-function(data){
             names(data)<-c("plot","rep","split.plot","response")
             data<-data.frame(plot=factor(data$plot), rep=factor(data$rep), split.plot=factor(data$split.plot), response=data$response)
             subject<-interaction(data$plot,data$rep)
             treatments<-interaction(data$plot,data$split.plot)
             data<-data.frame(data, subject,treatments)
-            UN<-corSymm(form=~1|subject)
-            AR<-corAR1(form=~1|subject)
-            ARH<-corAR1(form=~1|subject)
-            CS<- corCompSymm (form=~1|subject) 
-            CAR<-corCAR1(form=~split.plot|subject)
-            o1<-list(AR,ARH, CAR, CS, UN)
-            cor<-o1[[gg]]
-            UN1<-varIdent(form=~1|split.plot)
-            AR1<-NULL
-            ARH1<- varIdent(form=~1|split.plot)
-            CS1<-NULL
-            CAR1<-NULL
-            o2<-list(AR1,ARH1, CAR1, CS1, UN1)
-            var<-o2[[gg]]
-            m<-lme(response~plot*split.plot, random=~1|subject, correlation=cor, weights=var, data<-data, na.action=na.omit, contrasts=list(plot=contr.sum, split.plot=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
-            b<-anova(m, type="marginal")[-1,]
-            m1<-lme(response~-1+ treatments, random=~1|subject, data=data, na.action=na.omit, contrasts=list(treatments=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
-            am<-fixef(m1)[1:nlevels(data$treatments)]
-            c<-data.frame(levels(treatments), round(am,4),
-                          round(sderrs(m1)[1:nlevels(data$treatments)],4))
-            colnames(c)<-c("plot*split.plot","adjusted.means", "standard.error")
-            rownames(c)<-NULL
-            df1<- anova(m) $"denDF"[2]
-            df2<- anova(m) $"denDF"[1]
-            mm1<-lme(response~-1+plot*split.plot, random=~1|subject, data=data, na.action=na.omit, contrasts=list(plot=contr.sum, split.plot=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000,  niterEM=2000, opt="optim"))
-            mm2<-lme(response~-1+split.plot*plot, random=~1|subject, data=data, na.action=na.omit, contrasts=list(split.plot=contr.sum, plot=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
-            a11<-data.frame(levels(data$plot), round(fixef(mm1)[1:nlevels(data$plot)],4), round(sderrs(mm1)[1:nlevels(data$plot)],4))
-            a22<-data.frame(levels(data$split.plot), round(fixef(mm2)[1:nlevels(data$split.plot)],4), round(sderrs(mm2)[1:nlevels(data$split.plot)],4))
- 	    colnames(a11)<-c("plot","adjusted.mean", "standard.error")
-            rownames(a11)<-NULL
-            colnames(a22)<-c("split.plot","adjusted.mean", "standard.error")
-            rownames(a22)<-NULL
-            res=fr2(m,data)
-            test1=fm(a11,df1)
-            test2=fm(a22,df2)
-            groups1=ft(test1, alpha); a11=a11[order(a11[,2], decreasing=TRUE),]
-            mf1=data.frame(a11,groups1);rownames(mf1) = NULL
-            groups2=ft(test2, alpha); a22=a22[order(a22[,2], decreasing=TRUE),]
-            mf2=data.frame(a22,groups2);rownames(mf2) = NULL
-            c1=rep(1:nlevels(data$split.plot), each=nlevels(data$plot))
-            cs1=split(c, c1)
-            test3=lapply(cs1, fm, dff=df1); n1=rep("plot in", nlevels(data$split.plot));n11=data.frame(n1,levels(data$split.plot)) 
-            n11 <- apply(t(n11), 2, paste, collapse = "  ")
-            names(test3)=n11
-            c2=rep(1:nlevels(data$plot), nlevels(data$split.plot))
-            cs2=split(c, c2)
-            test4=lapply(cs2, fm, dff=df2); n2=rep("split.plot in", nlevels(data$plot));n22=data.frame(n2,levels(data$plot)) 
-            n22 <- apply(t(n22), 2, paste, collapse = "  ")
-            names(test4)=n22
-            csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
-            groups3=lapply(test3, ft, alpha)
-            mft1=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft1[[x]],groups3[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$split.plot)))
-            mft1=lapply(nf1,dd)
-            names(mft1)=n11
-            groups4=lapply(test4, ft, alpha)
-            mft2=lapply(cs2,csf);
-            ddd<-function(x){l=data.frame(mft2[[x]],groups4[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$plot)))
-            mft2=lapply(nf2,ddd)
-            names(mft2)=n22                  
-            l=list(b,mf1,test1,mf2,test2,mft1,test3,mft2,test4, res)
+            m<-lmer(response~plot*split.plot+(1|subject), data=data)
+             b<-anova(m, type=3, ddf="Kenward-Roger")
+		e1=emmeans(m, list(pairwise~plot), adjust=adjust)[2]
+		e2=emmeans(m, list(pairwise~split.plot), adjust=adjust)[2]
+		e3=emmeans(m, list(pairwise~plot|split.plot), adjust=adjust)[2]
+		e4=emmeans(m, list(pairwise~split.plot|plot), adjust=adjust)[2]
+		c1=CLD(emmeans(m, ~plot), Letters=letters, alpha=alpha, adjust=adjust)
+		c2=CLD(emmeans(m, ~split.plot), Letters=letters, alpha=alpha, adjust=adjust)
+		c3=CLD(emmeans(m, ~plot|split.plot), Letters=letters, alpha=alpha, adjust=adjust)
+		c4=CLD(emmeans(m, ~split.plot|plot), Letters=letters, alpha=alpha, adjust=adjust)
+		res=fr2(m,data)
+
+	        l=list(b,c1,e1,c2,e2,c3,e3,c4,e4, res)
             names(l)=c("Marginal anova (Type III Sum of Squares)","Adjusted means (plot)", "Multiple comparison test (plot)","Adjusted means (split.plot)", "Multiple comparison test (split.plot)", "Adjusted means (plot in levels of split.plot)", "Multiple comparison test (plot in levels of split.plot)", "Adjusted means (split.plot in levels of plot)", "Multiple comparison test (split.plot in levels of plot)","Residual analysis")
 		pres(m)  
             return(l)
         }
         
-        f5<-function(data, cov){ 
-            gg<-cov
+        f5<-function(data){ 
             names(data)<-c("plot","block","split.plot","response")
             data<-data.frame(plot=factor(data$plot), block=factor(data$block), split.plot=factor(data$split.plot), response=data$response)
             subject<-interaction(data$plot,data$block)
             treatments<-interaction(data$plot,data$split.plot)
             data<-data.frame(data, subject,treatments)
-            UN<-corSymm(form=~1|subject)
-            AR<-corAR1(form=~1|subject)
-            ARH<-corAR1(form=~1|subject)
-            CS<- corCompSymm (form=~1|subject) 
-            CAR<-corCAR1(form=~split.plot|subject)
-            o1<-list(AR,ARH, CAR, CS, UN)
-            cor<-o1[[gg]]
-            UN1<-varIdent(form=~1|split.plot)
-            AR1<-NULL
-            ARH1<- varIdent(form=~1|split.plot)
-            CS1<-NULL
-            CAR1<-NULL
-            o2<-list(AR1,ARH1, CAR1, CS1, UN1)
-            var<-o2[[gg]]
-            m<-lme(response~plot*split.plot+block, random=~1|subject, correlation=cor, weights=var, data<-data, na.action=na.omit, contrasts=list(plot=contr.sum, split.plot=contr.sum, block=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
-            b<-anova(m, type="marginal")[-1,]
-            m1<-lme(response~-1+ treatments+block, random=~1|subject, data=data, na.action=na.omit, contrasts=list(treatments=contr.sum, block=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
-            am<-fixef(m1)[1:nlevels(data$ treatments)]
-            c<-data.frame(levels(treatments), round(am,4), round(sderrs(m1)[1:nlevels(data$ treatments)],4))
-            colnames(c)<-c("plot*split.plot","adjusted.mean", "standard.error")
-            rownames(c)<-NULL
-            df1<- anova(m) $"denDF"[2]
-            df2<- anova(m) $"denDF"[1]
-            mm1<-lme(response~-1+plot*split.plot+block, random=~1|subject, data=data, na.action=na.omit, contrasts=list(plot=contr.sum, split.plot=contr.sum, block=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
-            mm2<-lme(response~-1+split.plot*plot+block, random=~1|subject, data=data, na.action=na.omit, contrasts=list(split.plot=contr.sum, plot=contr.sum, block=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
-            a11<-data.frame(levels(data$plot), round(fixef(mm1)[1:nlevels(data$plot)],4), round(sderrs(mm1)[1:nlevels(data$plot)],4))
-            a22<-data.frame(levels(data$split.plot), round(fixef(mm2)[1:nlevels(data$split.plot)],4), round(sderrs(mm2)[1:nlevels(data$split.plot)],4))
-            colnames(a11)<-c("plot","adjusted.mean", "standard.error")
-            rownames(a11)<-NULL
-            colnames(a22)<-c("split.plot","adjusted.mean", "standard.error")
-            rownames(a22)<-NULL
-            res=fr2(m,data)
-            test1=fm(a11,df1)
-            test2=fm(a22,df2)
-            groups1=ft(test1, alpha); a11=a11[order(a11[,2], decreasing=TRUE),]
-            mf1=data.frame(a11,groups1);rownames(mf1) = NULL
-            groups2=ft(test2, alpha); a22=a22[order(a22[,2], decreasing=TRUE),]
-            mf2=data.frame(a22,groups2);rownames(mf2) = NULL
-            c1=rep(1:nlevels(data$split.plot), each=nlevels(data$plot))
-            cs1=split(c, c1)
-            test3=lapply(cs1, fm, dff=df1); n1=rep("plot in", nlevels(data$split.plot));n11=data.frame(n1,levels(data$split.plot)) 
-            n11 <- apply(t(n11), 2, paste, collapse = "  ")
-            names(test3)=n11
-            c2=rep(1:nlevels(data$plot), nlevels(data$split.plot))
-            cs2=split(c, c2)
-            test4=lapply(cs2, fm, dff=df2); n2=rep("split.plot in", nlevels(data$plot));n22=data.frame(n2,levels(data$plot)) 
-            n22 <- apply(t(n22), 2, paste, collapse = "  ")
-            names(test4)=n22
-            csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
-            groups3=lapply(test3, ft, alpha)
-            mft1=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft1[[x]],groups3[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$split.plot)))
-            mft1=lapply(nf1,dd)
-            names(mft1)=n11
-            groups4=lapply(test4, ft, alpha)
-            mft2=lapply(cs2,csf);
-            ddd<-function(x){l=data.frame(mft2[[x]],groups4[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$plot)))
-            mft2=lapply(nf2,ddd)
-            names(mft2)=n22    
-            l=list(b,mf1,test1,mf2,test2,mft1,test3,mft2,test4, res)
+            
+            m<-lmer(response~plot*split.plot+block+(1|subject), data=data)
+            b<-anova(m, type=3, ddf="Kenward-Roger")
+		e1=emmeans(m, list(pairwise~plot), adjust=adjust)[2]
+		e2=emmeans(m, list(pairwise~split.plot), adjust=adjust)[2]
+		e3=emmeans(m, list(pairwise~plot|split.plot), adjust=adjust)[2]
+		e4=emmeans(m, list(pairwise~split.plot|plot), adjust=adjust)[2]
+		c1=CLD(emmeans(m, ~plot), Letters=letters,adjust=adjust, alpha=alpha)
+		c2=CLD(emmeans(m, ~split.plot), Letters=letters,adjust=adjust, alpha=alpha)
+		c3=CLD(emmeans(m, ~plot|split.plot), Letters=letters,adjust=adjust, alpha=alpha)
+		c4=CLD(emmeans(m, ~split.plot|plot), Letters=letters, adjust=adjust,alpha=alpha)
+		res=fr2(m,data)
+
+	        l=list(b,c1,e1,c2,e2,c3,e3,c4,e4, res)
             names(l)=c("Marginal anova (Type III Sum of Squares)","Adjusted means (plot)", "Multiple comparison test (plot)","Adjusted means (split.plot)", "Multiple comparison test (split.plot)", "Adjusted means (plot in levels of split.plot)", "Multiple comparison test (plot in levels of split.plot)", "Adjusted means (split.plot in levels of plot)", "Multiple comparison test (split.plot in levels of plot)","Residual analysis")
 		pres(m)  
             return(l)
         }
         
-        f6<-function(data, cov){ 
-            gg<-cov
+        f6<-function(data){ 
+            
             names(data)<-c("plot","row", "column", "split.plot","response")
             data<-data.frame(plot=factor(data$plot), row=factor(data$row), column=factor(data$column), split.plot=factor(data$split.plot), response=data$response)
-            subject<-interaction(data$plot,data$col)
+            subject<-interaction(data$plot,data$column)
             treatments<-interaction(data$plot,data$split.plot)
             data<-data.frame(data, subject,treatments)
-            UN<-corSymm(form=~1|subject)
-            AR<-corAR1(form=~1|subject)
-            ARH<-corAR1(form=~1|subject)
-            CS<- corCompSymm (form=~1|subject) 
-            CAR<-corCAR1(form=~split.plot|subject)
-            o1<-list(AR,ARH, CAR, CS, UN)
-            cor<-o1[[gg]]
-            UN1<-varIdent(form=~1|split.plot)
-            AR1<-NULL
-            ARH1<- varIdent(form=~1|split.plot)
-            CS1<-NULL
-            CAR1<-NULL
-            o2<-list(AR1,ARH1, CAR1, CS1, UN1)
-            var<-o2[[gg]]
-            m<-lme(response~plot*split.plot+row+column, random=~1|subject, correlation=cor, weights=var, data<-data, na.action=na.omit, contrasts=list(plot=contr.sum, split.plot=contr.sum, column=contr.sum, row=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
-            b<-anova(m, type="marginal")[-1,]
-            m1<-lme(response~-1+ treatments+row+column, random=~1|subject, data=data, na.action=na.omit, contrasts=list(treatments=contr.sum, column=contr.sum, row=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000,  opt="optim"))
-            am<-fixef(m1)[1:nlevels(data$ treatments)]
-            c<-data.frame(levels(treatments), round(am,4), round(sderrs(m1)[1:nlevels(data$ treatments)],4))
-            colnames(c)<-c("plot*split.plot","adjusted.mean", "standard.error")
-            rownames(c)<-NULL
-            df1<- anova(m) $"denDF"[2]
-            df2<- anova(m) $"denDF"[1]
-            mm1<-lme(response~-1+plot*split.plot+row+column, random=~1|subject, data=data, na.action=na.omit, contrasts=list(plot=contr.sum, split.plot=contr.sum, column=contr.sum, row=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
-            mm2<-lme(response~-1+split.plot*plot+row+column, random=~1|subject, data=data, na.action=na.omit, contrasts=list(split.plot=contr.sum, plot=contr.sum, column=contr.sum, row=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
-            a11<-data.frame(levels(data$plot),
-                            round( fixef(mm1)[1:nlevels(data$plot)], 4),
-                            round(sderrs(mm1)[1:nlevels(data$plot)], 4))
-            a22<-data.frame(levels(data$split.plot),
-                            round( fixef(mm2)[1:nlevels(data$split.plot)],4),
-                            round(sderrs(mm2)[1:nlevels(data$split.plot)],4))
-            colnames(a11)<-c("plot","adjusted.mean", "standard.error")
-            rownames(a11)<-NULL
-            colnames(a22)<-c("split.plot","adjusted.mean", "standard.error")
-            rownames(a22)<-NULL	
-            res=fr2(m,data)
-            test1=fm(a11,df1)
-            test2=fm(a22,df2)
-            groups1=ft(test1, alpha); a11=a11[order(a11[,2], decreasing=TRUE),]
-            mf1=data.frame(a11,groups1);rownames(mf1) = NULL
-            groups2=ft(test2, alpha); a22=a22[order(a22[,2], decreasing=TRUE),]
-            mf2=data.frame(a22,groups2);rownames(mf2) = NULL
-            c1=rep(1:nlevels(data$split.plot), each=nlevels(data$plot))
-            cs1=split(c, c1)
-            test3=lapply(cs1, fm, dff=df1); n1=rep("plot in", nlevels(data$split.plot));n11=data.frame(n1,levels(data$split.plot)) 
-            n11 <- apply(t(n11), 2, paste, collapse = "  ")
-            names(test3)=n11
-            c2=rep(1:nlevels(data$plot), nlevels(data$split.plot))
-            cs2=split(c, c2)
-            test4=lapply(cs2, fm, dff=df2); n2=rep("split.plot in", nlevels(data$plot));n22=data.frame(n2,levels(data$plot)) 
-            n22 <- apply(t(n22), 2, paste, collapse = "  ")
-            names(test4)=n22
-            csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
-            groups3=lapply(test3, ft, alpha)
-            mft1=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft1[[x]],groups3[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$split.plot)))
-            mft1=lapply(nf1,dd)
-            names(mft1)=n11
-            groups4=lapply(test4, ft, alpha)
-            mft2=lapply(cs2,csf);
-            ddd<-function(x){l=data.frame(mft2[[x]],groups4[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$plot)))
-            mft2=lapply(nf2,ddd)
-            names(mft2)=n22
-            l=list(b,mf1,test1,mf2,test2,mft1,test3,mft2,test4, res)
+            
+            m<-lmer(response~plot*split.plot+row+column+(~1|subject))
+             b<-anova(m, type=3, ddf="Kenward-Roger")
+		e1=emmeans(m, list(pairwise~plot), adjust=adjust)[2]
+		e2=emmeans(m, list(pairwise~split.plot), adjust=adjust)[2]
+		e3=emmeans(m, list(pairwise~plot|split.plot), adjust=adjust)[2]
+		e4=emmeans(m, list(pairwise~split.plot|plot), adjust=adjust)[2]
+		c1=CLD(emmeans(m, ~plot), Letters=letters, alpha=alpha, adjust=adjust)
+		c2=CLD(emmeans(m, ~split.plot), Letters=letters, alpha=alpha, adjust=adjust)
+		c3=CLD(emmeans(m, ~plot|split.plot), Letters=letters, alpha=alpha, adjust=adjust)
+		c4=CLD(emmeans(m, ~split.plot|plot), Letters=letters, alpha=alpha, adjust=adjust)
+		res=fr2(m,data)
+
+	        l=list(b,c1,e1,c2,e2,c3,e3,c4,e4, res)
             names(l)=c("Marginal anova (Type III Sum of Squares)","Adjusted means (plot)", "Multiple comparison test (plot)","Adjusted means (split.plot)", "Multiple comparison test (split.plot)", "Adjusted means (plot in levels of split.plot)", "Multiple comparison test (plot in levels of split.plot)", "Adjusted means (split.plot in levels of plot)", "Multiple comparison test (split.plot in levels of plot)","Residual analysis")
 		pres(m)  
             return(l)
         }
         
         
-        f7<-function(data, cov){ 
+        f7<-function(data){ 
             names(data)=c("factor_1","factor_2", "factor_3", "response")
             data<-data.frame(factor_1=factor(data$factor_1), factor_2=factor(data$factor_2), factor_3=factor(data$factor_3), response=data$response)
             m<-aov(response~factor_1*factor_2*factor_3,data=data, contrasts=list(factor_1=contr.sum, factor_2=contr.sum, factor_3=contr.sum))
@@ -1086,7 +944,7 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             return(l)}
         
         
-        f8<-function(data, cov){ 
+        f8<-function(data){ 
             names(data)=c("factor_1","factor_2", "factor_3", "blocks","response")
             data<-data.frame(factor_1=factor(data$factor_1), factor_2=factor(data$factor_2), factor_3=factor(data$factor_3), blocks=factor(data$blocks), response=data$response)
             m<-aov(response~factor_1*factor_2*factor_3+ blocks,data=data, contrasts=list(factor_1=contr.sum, factor_2=contr.sum, factor_3=contr.sum, blocks=contr.sum))
@@ -1267,401 +1125,109 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             return(l)
         }
         
-        f9<-function(data, cov){ 
-            gg=cov
+        f9<-function(data){ 
+
             names(data)=c("factor_1","factor_2", "factor_3","rep","response")
             data<-data.frame(factor_1=factor(data$factor_1), factor_2=factor(data$factor_2), factor_3=factor(data$factor_3),  rep=factor(data$rep), response=data$response)
             subject<-interaction(data$factor_1,data$factor_2,data$rep)
             data<-data.frame(data,subject)
-            UN<-corSymm(form=~1|subject)
-            AR<-corAR1(form=~1|subject)
-            ARH<-corAR1(form=~1|subject)
-            CS<- corCompSymm (form=~1|subject) 
-            CAR<-corCAR1(form=~factor_3|subject)
-            o1<-list(AR,ARH, CAR, CS, UN)
-            cor<-o1[[gg]]
-            UN1<-varIdent(form=~1|factor_3)
-            AR1<-NULL
-            ARH1<- varIdent(form=~1|factor_3)
-            CS1<-NULL
-            CAR1<-NULL
-            o2<-list(AR1,ARH1, CAR1, CS1, UN1)
-            var<-o2[[gg]]
-            m<- lme(response~factor_1*factor_2*factor_3, random=~1|subject, correlation=cor, weights=var , data=data, contrasts=list(factor_1=contr.sum, factor_2=contr.sum, factor_3=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            m1<-lme(response~-1+ factor_1*factor_2*factor_3, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(factor_1=contr.sum, factor_2=contr.sum, factor_3=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            m2<-lme(response~-1+ factor_2*factor_1*factor_3, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(factor_1=contr.sum, factor_2=contr.sum, factor_3=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            m3<-lme(response~-1+ factor_3*factor_1*factor_2, random=~1|subject, correlation=cor, weights=var , data=data, contrasts=list(factor_1=contr.sum, factor_2=contr.sum, factor_3=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            a3<-anova(m, type="marginal")[-1,]
-            
-            df1<- anova(m) $"denDF"[2]
-            df2<- anova(m) $"denDF"[1]
-            treatments_f1f2=interaction(data$factor_1,data$factor_2)
-            treatments_f1f3=interaction(data$factor_1,data$factor_3)
-            treatments_f2f3=interaction(data$factor_2,data$factor_3)
-            treatments_f1f2f3=interaction(data$factor_1,data$factor_2, data$factor_3)
-            treatments_f2f1f3=interaction(data$factor_2,data$factor_1, data$factor_3)
-            treatments_f3f1f2=interaction(data$factor_3,data$factor_1, data$factor_2)
-            data<-data.frame(data,treatments_f1f2, treatments_f1f3, treatments_f2f3, treatments_f1f2f3, treatments_f2f1f3, treatments_f3f1f2)
-            m4<-lme(response~-1+treatments_f1f2+factor_3*treatments_f1f2, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(treatments_f1f2=contr.sum, factor_3=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            m5<-lme(response~-1+treatments_f1f3+factor_2*treatments_f1f3, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(treatments_f1f3=contr.sum, factor_2=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            m6<-lme(response~-1+treatments_f2f3+factor_1*treatments_f2f3, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(treatments_f2f3=contr.sum, factor_1=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            m7<-lme(response~-1+treatments_f1f2f3, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(treatments_f1f2f3=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            m8<-lme(response~-1+treatments_f2f1f3, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(treatments_f2f1f3=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            m9<-lme(response~-1+treatments_f3f1f2, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(treatments_f3f1f2=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            res=fr4(m,data)
-            adjusted.mean<-round(fixef(m1)[1:nlevels(data$factor_1)],4)
-            standard.error<-round(sderrs(m1)[1:nlevels(data$factor_1)], 4)
-            factor_1<-levels(data$factor_1)
-            maf1=data.frame(factor_1,adjusted.mean,standard.error)
-            rownames(maf1)=NULL
-            adjusted.mean<-round(fixef(m2) [1:nlevels(data$factor_2)],4)
-            standard.error<-round(sderrs(m2)[1:nlevels(data$factor_2)],4)
-            factor_2<-levels(data$factor_2)
-            maf2=data.frame(factor_2,adjusted.mean,standard.error)
-            rownames(maf2)=NULL
-            adjusted.mean<-round(fixef(m3) [1:nlevels(data$factor_3)],4)
-            standard.error<-round(sderrs(m3)[1:nlevels(data$factor_3)],4)
-            factor_3<-levels(data$factor_3)
-            maf3=data.frame(factor_3,adjusted.mean,standard.error)
-            rownames(maf3)=NULL
-            adjusted.mean<-round(fixef(m4)[1:nlevels(data$treatments_f1f2)],4)
-            standard.error<-round(sderrs(m4)[1:nlevels(data$treatments_f1f2)],4)
-            treatments_f1f2<-levels(data$treatments_f1f2)
-            mat1=data.frame(treatments_f1f2,adjusted.mean,standard.error)
-            rownames(mat1)=NULL
-            adjusted.mean<-round(fixef(m5)[1:nlevels(data$treatments_f1f3)],4)
-            standard.error<-round(sderrs(m5)[1:nlevels(data$treatments_f1f3)],4)
-            treatments_f1f3<-levels(data$treatments_f1f3)
-            mat2=data.frame(treatments_f1f3,adjusted.mean,standard.error)
-            rownames(mat2)=NULL
-            adjusted.mean<-round(fixef(m6)[1:nlevels(data$treatments_f2f3)],2)
-            standard.error<-round(sderrs(m6)[1:nlevels(data$treatments_f2f3)],2)
-            treatments_f2f3<-levels(data$treatments_f2f3)
-            mat3=data.frame(treatments_f2f3,adjusted.mean,standard.error)
-            rownames(mat3)=NULL
-            adjusted.mean<-round(fixef(m7)[1:nlevels(data$treatments_f1f2f3)],4)
-            standard.error<-round(sderrs(m7)[1:nlevels(data$treatments_f1f2f3)],4)
-            treatments_f1f2f3<-levels(data$treatments_f1f2f3)
-            mat4=data.frame(treatments_f1f2f3,adjusted.mean,standard.error)
-            rownames(mat4)=NULL
-            test1=fm(maf1,df1)
-            test2=fm(maf2,df1)
-            test3=fm(maf3,df2)
-            groups1=ft(test1, alpha); maf1=maf1[order(maf1[,2], decreasing=TRUE),]
-            mf1=data.frame(maf1,groups1)
-            rownames(mf1) = NULL
-            groups2=ft(test2, alpha); maf2=maf2[order(maf2[,2], decreasing=TRUE),]
-            mf2=data.frame(maf2,groups2)
-            rownames(mf2) = NULL
-            groups3=ft(test3, alpha); maf3=maf3[order(maf3[,2], decreasing=TRUE),]
-            mf3=data.frame(maf3,groups3)
-            rownames(mf3) = NULL
-            c1=rep(1:nlevels(data$factor_2), each=nlevels(data$factor_1))
-            cs1=split(mat1, c1)
-            
-            test4=lapply(cs1, fm, dff=df1); n1=rep("factor_1 in", nlevels(data$factor_2));n11=data.frame(n1,levels(data$factor_2)) 
-            n11 <- apply(t(n11), 2, paste, collapse = "  ")
-            names(test4)=n11
-            c2=rep(1:nlevels(data$factor_1), nlevels(data$factor_2))
-            cs2=split(mat1, c2)
-            test5=lapply(cs2, fm, dff=df1); n2=rep("factor_2 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
-            n22 <- apply(t(n22), 2, paste, collapse = "  ")
-            names(test5)=n22
-            csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
-            groups4=lapply(test4, ft, alpha)
-            mft1=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft1[[x]],groups4[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$factor_2)))
-            mft1=lapply(nf1,dd)
-            names(mft1)=n11
-            groups5=lapply(test5, ft, alpha)
-            mft2=lapply(cs2,csf);
-            ddd<-function(x){l=data.frame(mft2[[x]],groups5[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$factor_1)))
-            mft2=lapply(nf2,ddd)
-            names(mft2)=n22
-            c1=rep(1:nlevels(data$factor_3), each=nlevels(data$factor_1))
-            cs1=split(mat2, c1)
-            test6=lapply(cs1, fm, dff=df2); n1=rep("factor_1 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
-            n11 <- apply(t(n11), 2, paste, collapse = "  ")
-            names(test6)=n11
-            c2=rep(1:nlevels(data$factor_1), nlevels(data$factor_3))
-            cs2=split(mat2, c2)
-            test7=lapply(cs2, fm, dff=df2); n2=rep("factor_3 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
-            n22 <- apply(t(n22), 2, paste, collapse = "  ")
-            names(test7)=n22
-            csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
-            groups6=lapply(test6, ft, alpha)
-            mft3=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft3[[x]],groups6[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$factor_3)))
-            mft3=lapply(nf1,dd)
-            names(mft3)=n11
-            groups7=lapply(test7, ft, alpha)
-            mft4=lapply(cs2,csf);
-            ddd<-function(x){l=data.frame(mft4[[x]],groups7[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$factor_1)))
-            mft4=lapply(nf2,ddd)
-            names(mft4)=n22
-            c1=rep(1:nlevels(data$factor_3), each=nlevels(data$factor_2))
-            cs1=split(mat3, c1)
-            test8=lapply(cs1, fm, dff=df2); n1=rep("factor_2 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
-            n11 <- apply(t(n11), 2, paste, collapse = "  ")
-            names(test8)=n11
-            c2=rep(1:nlevels(data$factor_2), nlevels(data$factor_3))
-            cs2=split(mat3, c2)
-            test9=lapply(cs2, fm, dff=df2); n2=rep("factor_3 in", nlevels(data$factor_2));n22=data.frame(n2,levels(data$factor_2)) 
-            n22 <- apply(t(n22), 2, paste, collapse = "  ")
-            names(test9)=n22
-            csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
-            groups8=lapply(test8, ft, alpha)
-            mft5=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft5[[x]],groups8[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$factor_3)))
-            mft5=lapply(nf1,dd)
-            names(mft5)=n11
-            groups9=lapply(test9, ft, alpha)
-            mft6=lapply(cs2,csf);
-            ddd<-function(x){l=data.frame(mft6[[x]],groups9[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$factor_2)))
-            mft6=lapply(nf2,ddd)
-            names(mft6)=n22
-            c1=rep(1:nlevels(data$treatments_f2f3), each=nlevels(data$factor_1))
-            cs1=split(mat4, c1)
-            test10=lapply(cs1, fm, dff=df2); n1=rep("factor_1 in", nlevels(data$treatments_f2f3));n11=data.frame(n1,levels(data$treatments_f2f3)) 
-            n11 <- apply(t(n11), 2, paste, collapse = "  ")
-            names(test10)=n11
-            csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
-            groups10=lapply(test10, ft, alpha)
-            mft7=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft7[[x]],groups10[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$treatments_f2f3)))
-            mft7=lapply(nf1,dd)
-            names(mft7)=n11
+            m<- lmer(response~factor_1*factor_2*factor_3+(1|subject), data=data)
+             b<-anova(m, type=3, ddf="Kenward-Roger")
 
+		e1=emmeans(m, list(pairwise~factor_1), adjust=adjust)[2]
+		e2=emmeans(m, list(pairwise~factor_2), adjust=adjust)[2]
+		e3=emmeans(m, list(pairwise~factor_3), adjust=adjust)[2]
 
-            c1=rep(1:nlevels(data$factor_1), nlevels(data$factor_2));c1=rep(c1,nlevels(data$factor_3))
-            s=rep(0:(nlevels(data$factor_3)-1), each=nlevels(data$treatments_f1f2)); oi=max(c1); s=oi*s; c1=c1+s
-            cs1=split(mat4, c1)
-            test11=lapply(cs1, fm, dff=df2); n1=rep("factor_2 in", nlevels(data$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3))
-            n11 <- apply(t(n11), 2, paste, collapse = "  ")
-            names(test11)=n11
-            csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
-            groups11=lapply(test11, ft, alpha)
-            mft8=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft8[[x]],groups11[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$treatments_f1f3)))
-            mft8=lapply(nf1,dd)
-            names(mft8)=n11
+		e4=emmeans(m, list(pairwise~factor_1|factor_2), adjust=adjust)[2]
+		e5=emmeans(m, list(pairwise~factor_2|factor_1), adjust=adjust)[2]
 
+		e6=emmeans(m, list(pairwise~factor_1|factor_3), adjust=adjust)[2]
+		e7=emmeans(m, list(pairwise~factor_3|factor_1), adjust=adjust)[2]
 
+		e8=emmeans(m, list(pairwise~factor_2|factor_3), adjust=adjust)[2]
+		e9=emmeans(m, list(pairwise~factor_3|factor_2), adjust=adjust)[2]
 
-            c1=rep(1:nlevels(data$treatments_f1f2), nlevels(data$factor_3))
-            cs1=split(mat4, c1)
-            test12=lapply(cs1, fm, dff=df2); n1=rep("factor_3 in", nlevels(data$treatments_f1f2));n11=data.frame(n1,levels(data$treatments_f1f2)) 
-            n11 <- apply(t(n11), 2, paste, collapse = "  ")
-            names(test12)=n11
-            csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
-            groups12=lapply(test12, ft, alpha)
-            mft9=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft9[[x]],groups12[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$treatments_f1f2)))
-            mft9=lapply(nf1,dd)
-            names(mft9)=n11
-            l<-list(a3,  mf1, test1, mf2,test2,mf3,test3,   mft1,test4,mft2,test5,  mft3,test6,mft4,test7,  mft5,test8,mft6,test9,  mft7,test10, mft8,test11, mft9,test12, res)
-            names(l)= list("Marginal anova (Type III Sum of Squares)", "Adjusted means (factor 1)", "Multiple comparison test (factor 1)","Adjusted means (factor 2)", "Multiple comparison test (factor 2)", "Adjusted means (factor 3)", "Multiple comparison test (factor 3)", "Adjusted means (factor 1 in levels of factor 2)", "Multiple comparison test (factor 1 in levels of factor 2)", "Adjusted means (factor 2 in levels of factor 1)", "Multiple comparison test (factor 2 in levels of factor 1)","Adjusted means (factor 1 in levels of factor 3)", "Multiple comparison test (factor 1 in levels of factor 3)", "Adjusted means (factor 3 in levels of factor 1)", "Multiple comparison test (factor 3 in levels of factor 1)","Adjusted means (factor 2 in levels of factor 3)", "Multiple comparison test (factor 2 in levels of factor 3)", "Adjusted means (factor 3 in levels of factor 2)", "Multiple comparison test (factor 3 in levels of factor 2)","Adjusted means (factor 1 in levels of treatments factor2*factor3)", "Multiple comparison test (factor 1 in levels of treatments factor2*factor3)","Adjusted means (factor 2 in levels of treatments factor1*factor3)", "Multiple comparison test (factor 2 in levels of treatments factor1*factor3)", "Adjusted means (factor 3 in levels of treatments factor1*factor2)","Multiple comparison test (factor 3 in levels of treatments factor1*factor2)","Residual analysis")
+		e10=emmeans(m, list(pairwise~factor_1|factor_2*factor_3), adjust=adjust)[2]
+		e11=emmeans(m, list(pairwise~factor_2|factor_1*factor_3), adjust=adjust)[2]
+		e12=emmeans(m, list(pairwise~factor_3|factor_1*factor_2), adjust=adjust)[2]
+
+		c1=CLD(emmeans(m, ~factor_1), Letters=letters, alpha=alpha, adjust=adjust)
+		c2=CLD(emmeans(m, ~factor_2), Letters=letters, alpha=alpha, adjust=adjust)
+		c3=CLD(emmeans(m, ~factor_3), Letters=letters, alpha=alpha, adjust=adjust)
+
+		c4=CLD(emmeans(m, ~factor_1|factor_2), Letters=letters, alpha=alpha, adjust=adjust)
+		c5=CLD(emmeans(m, ~factor_2|factor_1), Letters=letters, alpha=alpha, adjust=adjust)
+		c6=CLD(emmeans(m, ~factor_1|factor_3), Letters=letters, alpha=alpha, adjust=adjust)
+		c7=CLD(emmeans(m, ~factor_3|factor_1), Letters=letters, alpha=alpha, adjust=adjust)
+		c8=CLD(emmeans(m, ~factor_2|factor_3), Letters=letters, alpha=alpha, adjust=adjust)
+		c9=CLD(emmeans(m, ~factor_3|factor_2), Letters=letters, alpha=alpha, adjust=adjust)
+
+		c10=CLD(emmeans(m, ~factor_1|factor_2*factor_3), Letters=letters, alpha=alpha, adjust=adjust)
+		c11=CLD(emmeans(m, ~factor_2|factor_1*factor_3), Letters=letters, alpha=alpha, adjust=adjust)
+		c12=CLD(emmeans(m, ~factor_3|factor_1*factor_2), Letters=letters, alpha=alpha, adjust=adjust)
+
+            	res=fr4(m,data)
+
+	        l=list(b,c1,e1,c2,e2,c3,e3,c4,e4,c5,e5,c6,e6,c7,e7,c8,e8,c9,e9,c10,e10,c11,e11,c12,e12, res)
+
+            	  names(l)= list("Marginal anova (Type III Sum of Squares)", "Adjusted means (factor 1)", "Multiple comparison test (factor 1)","Adjusted means (factor 2)", "Multiple comparison test (factor 2)", "Adjusted means (factor 3)", "Multiple comparison test (factor 3)", "Adjusted means (factor 1 in levels of factor 2)", "Multiple comparison test (factor 1 in levels of factor 2)", "Adjusted means (factor 2 in levels of factor 1)", "Multiple comparison test (factor 2 in levels of factor 1)","Adjusted means (factor 1 in levels of factor 3)", "Multiple comparison test (factor 1 in levels of factor 3)", "Adjusted means (factor 3 in levels of factor 1)", "Multiple comparison test (factor 3 in levels of factor 1)","Adjusted means (factor 2 in levels of factor 3)", "Multiple comparison test (factor 2 in levels of factor 3)", "Adjusted means (factor 3 in levels of factor 2)", "Multiple comparison test (factor 3 in levels of factor 2)","Adjusted means (factor 1 in levels of treatments factor2*factor3)", "Multiple comparison test (factor 1 in levels of treatments factor2*factor3)","Adjusted means (factor 2 in levels of treatments factor1*factor3)", "Multiple comparison test (factor 2 in levels of treatments factor1*factor3)", "Adjusted means (factor 3 in levels of treatments factor1*factor2)","Multiple comparison test (factor 3 in levels of treatments factor1*factor2)","Residual analysis")
 		pres(m)  
             return(l)
         }
         
-        f10<-function(data, cov){ 
-            gg=cov
+        f10<-function(data){ 
             names(data)=c("factor_1","factor_2", "factor_3","blocks","response")
             data<-data.frame(factor_1=factor(data$factor_1), factor_2=factor(data$factor_2), factor_3=factor(data$factor_3),  blocks=factor(data$blocks), response=data$response)
             subject<-interaction(data$factor_1,data$factor_2,data$blocks)
             data<-data.frame(data,subject)
-            UN<-corSymm(form=~1|subject)
-            AR<-corAR1(form=~1|subject)
-            ARH<-corAR1(form=~1|subject)
-            CS<- corCompSymm (form=~1|subject) 
-            CAR<-corCAR1(form=~factor_3|subject)
-            o1<-list(AR,ARH, CAR, CS, UN)
-            cor<-o1[[gg]]
-            UN1<-varIdent(form=~1|factor_3)
-            AR1<-NULL
-            ARH1<- varIdent(form=~1|factor_3)
-            CS1<-NULL
-            CAR1<-NULL
-            o2<-list(AR1,ARH1, CAR1, CS1, UN1)
-            var<-o2[[gg]]
-            m<- lme(response~factor_1*factor_2*factor_3+blocks, random=~1|subject, correlation=cor, weights=var , data=data, contrasts=list(factor_1=contr.sum, factor_2=contr.sum, factor_3=contr.sum, blocks=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            m1<-lme(response~-1+ factor_1*factor_2*factor_3+blocks, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(factor_1=contr.sum, factor_2=contr.sum, factor_3=contr.sum, blocks=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            m2<-lme(response~-1+ factor_2*factor_1*factor_3+blocks, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(factor_1=contr.sum, factor_2=contr.sum, factor_3=contr.sum, blocks=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            m3<-lme(response~-1+ factor_3*factor_1*factor_2+blocks, random=~1|subject, correlation=cor, weights=var , data=data, contrasts=list(factor_1=contr.sum, factor_2=contr.sum, factor_3=contr.sum, blocks=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            a3<-anova(m, type="marginal")[-1,]
-            df1<- anova(m) $"denDF"[2]
-            df2<- anova(m) $"denDF"[1]
-            treatments_f1f2=interaction(data$factor_1,data$factor_2)
-            treatments_f1f3=interaction(data$factor_1,data$factor_3)
-            treatments_f2f3=interaction(data$factor_2,data$factor_3)
-            treatments_f1f2f3=interaction(data$factor_1,data$factor_2, data$factor_3)
-            treatments_f2f1f3=interaction(data$factor_2,data$factor_1, data$factor_3)
-            treatments_f3f1f2=interaction(data$factor_3,data$factor_1, data$factor_2)
-            data<-data.frame(data,treatments_f1f2, treatments_f1f3, treatments_f2f3, treatments_f1f2f3, treatments_f2f1f3, treatments_f3f1f2)
-            m4<-lme(response~-1+treatments_f1f2+factor_3*treatments_f1f2+blocks, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(treatments_f1f2=contr.sum, factor_3=contr.sum, blocks=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            m5<-lme(response~-1+treatments_f1f3+factor_2*treatments_f1f3+blocks, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(treatments_f1f3=contr.sum, factor_2=contr.sum, blocks=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            m6<-lme(response~-1+treatments_f2f3+factor_1*treatments_f2f3+blocks, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(treatments_f2f3=contr.sum, factor_1=contr.sum, blocks=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            m7<-lme(response~-1+treatments_f1f2f3+blocks, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(treatments_f1f2f3=contr.sum, blocks=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            m8<-lme(response~-1+treatments_f2f1f3+blocks, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(treatments_f2f1f3=contr.sum, blocks=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
-            m9<-lme(response~-1+treatments_f3f1f2+blocks, random=~1|subject, correlation=cor, weights=var ,data=data, contrasts=list(treatments_f3f1f2=contr.sum, blocks=contr.sum), control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"),na.action=na.omit)
             
-            res=fr4(m,data)
-            adjusted.mean<-round(fixef(m1)[1:nlevels(data$factor_1)],4)
-            standard.error<-round(sderrs(m1)[1:nlevels(data$factor_1)], 4)
-            factor_1<-levels(data$factor_1)
-            maf1=data.frame(factor_1,adjusted.mean,standard.error)
-            rownames(maf1)=NULL
-            adjusted.mean<-round(fixef(m2) [1:nlevels(data$factor_2)],4)
-            standard.error<-round(sderrs(m2)[1:nlevels(data$factor_2)],4)
-            factor_2<-levels(data$factor_2)
-            maf2=data.frame(factor_2,adjusted.mean,standard.error)
-            rownames(maf2)=NULL
-            adjusted.mean<-round(fixef(m3) [1:nlevels(data$factor_3)],4)
-            standard.error<-round(sderrs(m3)[1:nlevels(data$factor_3)],4)
-            factor_3<-levels(data$factor_3)
-            maf3=data.frame(factor_3,adjusted.mean,standard.error)
-            rownames(maf3)=NULL
-            adjusted.mean<-round(fixef(m4)[1:nlevels(data$treatments_f1f2)],4)
-            standard.error<-round(sderrs(m4)[1:nlevels(data$treatments_f1f2)],4)
-            treatments_f1f2<-levels(data$treatments_f1f2)
-            mat1=data.frame(treatments_f1f2,adjusted.mean,standard.error)
-            rownames(mat1)=NULL
-            adjusted.mean<-round(fixef(m5)[1:nlevels(data$treatments_f1f3)],4)
-            standard.error<-round(sderrs(m5)[1:nlevels(data$treatments_f1f3)],4)
-            treatments_f1f3<-levels(data$treatments_f1f3)
-            mat2=data.frame(treatments_f1f3,adjusted.mean,standard.error)
-            rownames(mat2)=NULL
-            adjusted.mean<-round(fixef(m6)[1:nlevels(data$treatments_f2f3)],2)
-            standard.error<-round(sderrs(m6)[1:nlevels(data$treatments_f2f3)],2)
-            treatments_f2f3<-levels(data$treatments_f2f3)
-            mat3=data.frame(treatments_f2f3,adjusted.mean,standard.error)
-            rownames(mat3)=NULL
-            adjusted.mean<-round(fixef(m7)[1:nlevels(data$treatments_f1f2f3)],4)
-            standard.error<-round(sderrs(m7)[1:nlevels(data$treatments_f1f2f3)],4)
-            treatments_f1f2f3<-levels(data$treatments_f1f2f3)
-            mat4=data.frame(treatments_f1f2f3,adjusted.mean,standard.error)
-            rownames(mat4)=NULL
-            test1=fm(maf1,df1)
-            test2=fm(maf2,df1)
-            test3=fm(maf3,df2)
-            groups1=ft(test1, alpha); maf1=maf1[order(maf1[,2], decreasing=TRUE),]
-            mf1=data.frame(maf1,groups1)
-            rownames(mf1) = NULL
-            groups2=ft(test2, alpha); maf2=maf2[order(maf2[,2], decreasing=TRUE),]
-            mf2=data.frame(maf2,groups2)
-            rownames(mf2) = NULL
-            groups3=ft(test3, alpha); maf3=maf3[order(maf3[,2], decreasing=TRUE),]
-            mf3=data.frame(maf3,groups3)
-            rownames(mf3) = NULL
-            c1=rep(1:nlevels(data$factor_2), each=nlevels(data$factor_1))
-            cs1=split(mat1, c1)
-            test4=lapply(cs1, fm, dff=df1); n1=rep("factor_1 in", nlevels(data$factor_2));n11=data.frame(n1,levels(data$factor_2)) 
-            n11 <- apply(t(n11), 2, paste, collapse = "  ")
-            names(test4)=n11
-            c2=rep(1:nlevels(data$factor_1), nlevels(data$factor_2))
-            cs2=split(mat1, c2)
-            test5=lapply(cs2, fm, dff=df1); n2=rep("factor_2 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
-            n22 <- apply(t(n22), 2, paste, collapse = "  ")
-            names(test5)=n22
-            csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
-            groups4=lapply(test4, ft, alpha)
-            mft1=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft1[[x]],groups4[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$factor_2)))
-            mft1=lapply(nf1,dd)
-            names(mft1)=n11
-            groups5=lapply(test5, ft, alpha)
-            mft2=lapply(cs2,csf);
-            ddd<-function(x){l=data.frame(mft2[[x]],groups5[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$factor_1)))
-            mft2=lapply(nf2,ddd)
-            names(mft2)=n22
-            c1=rep(1:nlevels(data$factor_3), each=nlevels(data$factor_1))
-            cs1=split(mat2, c1)
-            test6=lapply(cs1, fm, dff=df2); n1=rep("factor_1 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
-            n11 <- apply(t(n11), 2, paste, collapse = "  ")
-            names(test6)=n11
-            c2=rep(1:nlevels(data$factor_1), nlevels(data$factor_3))
-            cs2=split(mat2, c2)
-            test7=lapply(cs2, fm, dff=df2); n2=rep("factor_3 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
-            n22 <- apply(t(n22), 2, paste, collapse = "  ")
-            names(test7)=n22
-            csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
-            groups6=lapply(test6, ft, alpha)
-            mft3=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft3[[x]],groups6[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$factor_3)))
-            mft3=lapply(nf1,dd)
-            names(mft3)=n11
-            groups7=lapply(test7, ft, alpha)
-            mft4=lapply(cs2,csf);
-            ddd<-function(x){l=data.frame(mft4[[x]],groups7[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$factor_1)))
-            mft4=lapply(nf2,ddd)
-            names(mft4)=n22
-            c1=rep(1:nlevels(data$factor_3), each=nlevels(data$factor_2))
-            cs1=split(mat3, c1)
-            test8=lapply(cs1, fm, dff=df2); n1=rep("factor_2 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
-            n11 <- apply(t(n11), 2, paste, collapse = "  ")
-            names(test8)=n11
-            c2=rep(1:nlevels(data$factor_2), nlevels(data$factor_3))
-            cs2=split(mat3, c2)
-            test9=lapply(cs2, fm, dff=df2); n2=rep("factor_3 in", nlevels(data$factor_2));n22=data.frame(n2,levels(data$factor_2)) 
-            n22 <- apply(t(n22), 2, paste, collapse = "  ")
-            names(test9)=n22
-            csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
-            groups8=lapply(test8, ft, alpha)
-            mft5=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft5[[x]],groups8[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$factor_3)))
-            mft5=lapply(nf1,dd)
-            names(mft5)=n11
-            groups9=lapply(test9, ft, alpha)
-            mft6=lapply(cs2,csf);
-            ddd<-function(x){l=data.frame(mft6[[x]],groups9[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$factor_2)))
-            mft6=lapply(nf2,ddd)
-            names(mft6)=n22
-            c1=rep(1:nlevels(data$treatments_f2f3), each=nlevels(data$factor_1))
-            cs1=split(mat4, c1)
-            test10=lapply(cs1, fm, dff=df2); n1=rep("factor_1 in", nlevels(data$treatments_f2f3));n11=data.frame(n1,levels(data$treatments_f2f3)) 
-            n11 <- apply(t(n11), 2, paste, collapse = "  ")
-            names(test10)=n11
-            csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
-            groups10=lapply(test10, ft, alpha)
-            mft7=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft7[[x]],groups10[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$treatments_f2f3)))
-            mft7=lapply(nf1,dd)
-            names(mft7)=n11
-            
+           
+ m<- lmer(response~factor_1*factor_2*factor_3+blocks+(1|subject), data=data)
+             b<-anova(m, type=3, ddf="Kenward-Roger")
 
-	c1=rep(1:nlevels(data$factor_1), nlevels(data$factor_2));c1=rep(c1,nlevels(data$factor_3))
-            s=rep(0:(nlevels(data$factor_3)-1), each=nlevels(data$treatments_f1f2)); oi=max(c1); 	s=oi*s; c1=c1+s
-            cs1=split(mat4, c1)
-            test11=lapply(cs1, fm, dff=df2); n1=rep("factor_2 in", nlevels(data		$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3))
-            n11 <- apply(t(n11), 2, paste, collapse = "  ")
-            names(test11)=n11
-            csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
-            groups11=lapply(test11, ft, alpha)
-            mft8=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft8[[x]],groups11[[x]]); return(l)}; nf1=as.list(c	(1:nlevels(data$treatments_f1f3)))
-            mft8=lapply(nf1,dd)
-            names(mft8)=n11
+		e1=emmeans(m, list(pairwise~factor_1), adjust=adjust)[2]
+		e2=emmeans(m, list(pairwise~factor_2), adjust=adjust)[2]
+		e3=emmeans(m, list(pairwise~factor_3), adjust=adjust)[2]
 
+		e4=emmeans(m, list(pairwise~factor_1|factor_2), adjust=adjust)[2]
+		e5=emmeans(m, list(pairwise~factor_2|factor_1), adjust=adjust)[2]
 
-            c1=rep(1:nlevels(data$treatments_f1f2), nlevels(data$factor_3))
-            cs1=split(mat4, c1)
-            test12=lapply(cs1, fm, dff=df2); n1=rep("factor_3 in", nlevels(data$treatments_f1f2));n11=data.frame(n1,levels(data$treatments_f1f2)) 
-            n11 <- apply(t(n11), 2, paste, collapse = "  ")
-            names(test12)=n11
-            csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
-            groups12=lapply(test12, ft, alpha)
-            mft9=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft9[[x]],groups12[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$treatments_f1f2)))
-            mft9=lapply(nf1,dd)
-            names(mft9)=n11
-            l<-list(a3,  mf1, test1, mf2,test2,mf3,test3,   mft1,test4,mft2,test5,  mft3,test6,mft4,test7,  mft5,test8,mft6,test9,  mft7,test10, mft8,test11, mft9,test12, res)
+		e6=emmeans(m, list(pairwise~factor_1|factor_3), adjust=adjust)[2]
+		e7=emmeans(m, list(pairwise~factor_3|factor_1), adjust=adjust)[2]
+
+		e8=emmeans(m, list(pairwise~factor_2|factor_3), adjust=adjust)[2]
+		e9=emmeans(m, list(pairwise~factor_3|factor_2), adjust=adjust)[2]
+
+		e10=emmeans(m, list(pairwise~factor_1|factor_2*factor_3), adjust=adjust)[2]
+		e11=emmeans(m, list(pairwise~factor_2|factor_1*factor_3), adjust=adjust)[2]
+		e12=emmeans(m, list(pairwise~factor_3|factor_1*factor_2), adjust=adjust)[2]
+
+		c1=CLD(emmeans(m, ~factor_1), Letters=letters, alpha=alpha,adjust=adjust)
+		c2=CLD(emmeans(m, ~factor_2), Letters=letters, alpha=alpha,adjust=adjust)
+		c3=CLD(emmeans(m, ~factor_3), Letters=letters, alpha=alpha,adjust=adjust)
+
+		c4=CLD(emmeans(m, ~factor_1|factor_2), Letters=letters, alpha=alpha,adjust=adjust)
+		c5=CLD(emmeans(m, ~factor_2|factor_1), Letters=letters, alpha=alpha,adjust=adjust)
+		c6=CLD(emmeans(m, ~factor_1|factor_3), Letters=letters, alpha=alpha,adjust=adjust)
+		c7=CLD(emmeans(m, ~factor_3|factor_1), Letters=letters, alpha=alpha,adjust=adjust)
+		c8=CLD(emmeans(m, ~factor_2|factor_3), Letters=letters, alpha=alpha,adjust=adjust)
+		c9=CLD(emmeans(m, ~factor_3|factor_2), Letters=letters, alpha=alpha,adjust=adjust)
+
+		c10=CLD(emmeans(m, ~factor_1|factor_2*factor_3), Letters=letters, alpha=alpha,adjust=adjust)
+		c11=CLD(emmeans(m, ~factor_2|factor_1*factor_3), Letters=letters, alpha=alpha,adjust=adjust)
+		c12=CLD(emmeans(m, ~factor_3|factor_1*factor_2), Letters=letters, alpha=alpha,adjust=adjust)
+
+            	res=fr4(m,data)
+
+	        l=list(b,c1,e1,c2,e2,c3,e3,c4,e4,c5,e5,c6,e6,c7,e7,c8,e8,c9,e9,c10,e10,c11,e11,c12,e12, res)
+
+          
             names(l)= list("Marginal anova (Type III Sum of Squares)", "Adjusted means (factor 1)", "Multiple comparison test (factor 1)","Adjusted means (factor 2)", "Multiple comparison test (factor 2)", "Adjusted means (factor 3)", "Multiple comparison test (factor 3)", "Adjusted means (factor 1 in levels of factor 2)", "Multiple comparison test (factor 1 in levels of factor 2)", "Adjusted means (factor 2 in levels of factor 1)", "Multiple comparison test (factor 2 in levels of factor 1)","Adjusted means (factor 1 in levels of factor 3)", "Multiple comparison test (factor 1 in levels of factor 3)", "Adjusted means (factor 3 in levels of factor 1)", "Multiple comparison test (factor 3 in levels of factor 1)","Adjusted means (factor 2 in levels of factor 3)", "Multiple comparison test (factor 2 in levels of factor 3)", "Adjusted means (factor 3 in levels of factor 2)", "Multiple comparison test (factor 3 in levels of factor 2)","Adjusted means (factor 1 in levels of treatments factor2*factor3)", "Multiple comparison test (factor 1 in levels of treatments factor2*factor3)","Adjusted means (factor 2 in levels of treatments factor1*factor3)", "Multiple comparison test (factor 2 in levels of treatments factor1*factor3)", "Adjusted means (factor 3 in levels of treatments factor1*factor2)","Multiple comparison test (factor 3 in levels of treatments factor1*factor2)","Residual analysis")
 		pres(m)  
             return(l)
 }
 
-f11<-function(data, cov){
+f11<-function(data){
 
 names(data)=c("factor_1","factor_2","blocks","response") 
             data<-data.frame(treatment=factor(data$factor_1), experiment=factor(data$factor_2), block=factor(data$blocks), response=data$response) 
@@ -1773,7 +1339,7 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             return(l) 
         }
 
-f12<-function(data, cov){
+f12<-function(data){
 
 names(data) = c("treatments", "squares", "rows", "cols", 
                         "response")
@@ -1898,7 +1464,7 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
 
 
 
-f13<-function(data, cov){
+f13<-function(data){
 
 names(data) = c("treatments", "squares", "rows", "cols", 
                         "response")
@@ -2036,9 +1602,9 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
         l=lapply(h, f)
         l2=list(f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13)
         fun=l2[[design]]
-        li1=lapply(l, fun, cov)
+        li1=lapply(l, fun)
         names(li1)=names(d2)
-        li=list(fun(data, cov),li1)
+        li=list(fun(data),li1)
         li=li[[list]]
         return(li)
     }

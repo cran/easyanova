@@ -395,8 +395,8 @@ n3=as.character(do[3,4])
         a <- anova(m)
         data2 <- na.omit(data)
         res=fr(m,data2)
-        a2 <- Anova(m, type = 3)
-        a3 <- a2[-1, ]
+        a2 <- Anova(m, type = 2)
+        a3 <- a2
         a3<-fa2(a3)
         adjusted.mean <- round(coef(m1)[c(1:nlevels(data$treatments))],4)
         Standart.Error <- round(sderrs(m1),4)
@@ -431,8 +431,8 @@ n3=as.character(do[3,4])
         a <- anova(m)
         data2 <- na.omit(data)
         res=fr(m,data2)
-        a2 <- Anova(m, type = 3)
-        a3 <- a2[-1, ]
+        a2 <- Anova(m, type = 2)
+        a3 <- a2
         a3<-fa2(a3)
         adjusted.mean <- round(coef(m1)[c(1:nlevels(data$treatments))],4)
         Standart.Error <- round(sderrs(m1),4)
@@ -698,11 +698,11 @@ n3=as.character(do[3,4])
         data<-data.frame(treatments=factor(data$treatments), repetition=factor(data$repetition), blocks=factor(data$blocks), response=data$response)
         block=interaction(data$repetition,data$blocks)
         data=data.frame(data,block)
-        m<-lme(response~ repetition +treatments,random=~1|block, data=data, contrasts=list(repetition=contr.sum, treatments=contr.sum), na.action=na.omit)
+        m<-lmer(response~ repetition +treatments+(1|block), data=data)
 	mrr=m
-        m1<-lme(response~-1+treatments+repetition, random=~1|repetition/blocks,data=data, contrasts=list(repetition=contr.sum, blocks=contr.sum, treatments=contr.sum), na.action=na.omit)
-        a3<-anova(m, type="marginal")
-        a3<-a3[-1,]
+        m1<-lmer(response~-1+treatments+repetition+(1|repetition/blocks),data=data)
+        a=anova(m, type=3,ddf = c("Satterthwaite"))
+	a3=round(as.data.frame(a),4)
         data2<-na.omit(data)
         r=resid(m)
         s=shapiro.test(r)
@@ -712,16 +712,15 @@ n3=as.character(do[3,4])
         treatment<-levels(data$treatments)
         ma=data.frame(treatment,adjusted.mean,standard.error)
         rownames(ma)=NULL
-        dff=a3[[2]][[2]]
+        dff=a3[[3]][[2]]
         test=fm(ma,dff)
         groups=ft(test, alpha); ma=ma[order(ma[,2], decreasing=TRUE),]
         means=adjusted.mean; names(means)=treatment
-	QME= m$sigma^2
+	QME= sigma(m)^2
 	nrep=length(data2[,1])/nlevels(data2[,1])
 	scott_knott=sk(means, dff, QME, nrep, alpha)
         mf=data.frame(ma,groups, scott_knott)
         rownames(ma)=NULL
-        QME= m$sigma^2
         m=nlevels(data$repetition)
         k=nlevels(data$blocks)
         mb=lm(response~repetition/blocks+treatments, data=data)
@@ -885,6 +884,13 @@ b=nlevels(data[,2])
 t=nlevels(data[,1])
 gl=t-1
 cal=((12/(b*t*(t+1)))*(suu))-(3*b*(t+1))
+cal=cal*(b*t*(t+1))
+f2=function(i){t=table(da[,i]); return(t)}
+ran2=lapply(1:ncol(da), f2)
+f3=function(i){ss=sum(ran2[[i]]^3)-t; return(ss)}
+ran3=lapply(1:ncol(da), f3); rr=unlist(ran3)
+rr=sum(rr); fc=(1/(t-1))*rr
+cal=cal/((b*t*(t+1))-fc)
 pq=pchisq(cal,lower.tail=FALSE, df=gl) #chisq
 f11=function(data){mean(data$response, na.rm=TRUE)}
 ran2=lapply(d, f11)

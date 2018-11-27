@@ -1,7 +1,7 @@
-017ecd81c86946c54c1015e935c4e8e6 *DESCRIPTION
-18a315ccc40a36978fe909e6733b7ab0 *NAMESPACE
-36939ec74ca6f29c75a6d24296b8593f *R/ea1.R
-5296d207338ef9494a546a7a3e07b662 *R/ea2.R
+c1b04b86fe45fc685553924d3a302ab2 *DESCRIPTION
+caa948412567a79ed5252811e36727b1 *NAMESPACE
+22b11ae3fa74d342e5ebd8dd0c914ada *R/ea1.R
+d19dbabdfda057c9ab47bcd53a7115ed *R/ea2.R
 f936da9979a6d78c811b07cef6bdad8f *R/ec.R
 b105ae919a786d33d3b32b2caf547dac *data/data1.rda
 e02ece2c54ce110ddeb64fad0f6bfef7 *data/data10.rda
@@ -43,6 +43,6 @@ c70b307caac011ffdbec58e6dec96533 *man/data5.Rd
 8514852e9ffecefd9bc4c668f82eccc2 *man/data8.Rd
 2d3e91da073e01c78dcb856048920202 *man/data9.Rd
 79f8cc8d31b198acf82cbc71434591c8 *man/ea1.Rd
-04b0d481ba859220e112708c0a66fcc8 *man/ea2.Rd
-b5a7575f833502d29090765aca0a5037 *man/easyanova-package.Rd
+e5e05118f0d72ae301f5a0b11fb5e110 *man/ea2.Rd
+aa6d394f1bf9266d6e0bedf606d57a5f *man/easyanova-package.Rd
 4d513b39f6243559c06d580a699ade47 *man/ec.Rd
