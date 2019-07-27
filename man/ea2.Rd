@@ -8,7 +8,7 @@ Analysis of variance in factorial and split plot
 Perform analysis of variance and other important complementary analyzes in factorial and split plot scheme, with balanced and unbalanced data.
 }
 \usage{
-ea2(data, design = 1, alpha = 0.05, list = FALSE, p.adjust=1, plot=2, adjust="tukey")
+ea2(data, design = 1, alpha = 0.05, cov = 4, list = FALSE, p.adjust=1, plot=2)
 }
 
 \arguments{
@@ -50,7 +50,19 @@ see how the input data in the examples
   \item{alpha}{
 significance level for multiple comparisons 
 }
-  
+  \item{cov}{
+for split plot designs
+
+1 = Autoregressive
+
+2 = Heterogenius Autoregressive
+
+3 = Continuous Autoregressive Process
+
+4 = Compound Symetry
+
+5 = Unstructured
+}
   \item{list}{
 FALSE = a single response variable
 
@@ -61,14 +73,6 @@ TRUE = multivariable response
 1="none"; 2="holm"; 3="hochberg"; 4="hommel"; 5="bonferroni"; 6="BH", 7="BY"; 8="fdr"; for more details see function "p.adjust"}
 
 \item{plot}{ 1 = box plot for residuals; 2 = standardized residuals vs sequence data; 3 = standardized residuals vs theoretical quantiles}
-
- \item{adjust}{
-"p values adjust in split.plot designs"
-"tukey";"scheffe";"sidak";"dunnettx";"mvt";"holm"; "hochberg"; "hommel"; "bonferroni"; "BH"; "BY"; "fdr" and "none"
-
-see P-value adjustments in help of the summary function in the emmeans package
-
-}
  
 }
 \details{
