@@ -31,7 +31,7 @@ n=1:(length(means)-1)
 n=as.list(n)
 f=function(n){list(means[c(1:n)],means[-c(1:n)])}
 g=lapply(n, f)
-b1=function(x){(sum(g[[x]][[1]])^2)/length(g[[x]][[1]]) + 
+b1=function(x){(sum(g[[x]][[1]])^2)/length(g[[x]][[1]]) +
 (sum(g[[x]][[2]])^2)/length(g[[x]][[2]])-
 (sum(c(g[[x]][[1]],g[[x]][[2]]))^2)/length(c(g[[x]][[1]],g[[x]][[2]]))}
 p=1:length(g)
@@ -46,45 +46,57 @@ r=g[[ran]]; r=as.list(r)
 i=ifelse(vq>lambda|length(means)==1, 1,2)
 means=list(means)
 res=list(means, r)
-return(res[[i]]) 
+return(res[[i]])
 }
 u=sk1(means, df1, QME, nrep, alpha=alpha)
 u=lapply(u, sk1, df1=df1, QME=QME, nrep=nrep, alpha=alpha)
 sk2=function(u){
-v1=function(...){c(u[[1]])};v2=function(...){c(u[[1]],u[[2]])};v3=function(...){c(u[[1]],u[[2]],u[[3]])} 
+v1=function(...){c(u[[1]])};v2=function(...){c(u[[1]],u[[2]])};v3=function(...){c(u[[1]],u[[2]],u[[3]])}
 v4=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]])}; v5=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]])}
 v6=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]])}
 v7=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]])}
 v8=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]],u[[8]])}
 v9=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]],u[[8]],u[[9]])}
 v10=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]],u[[8]],u[[9]],u[[10]])}
-lv=list(v1,v2,v3,v4,v5,v6,v7,v8,v9,v10)
+v11=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]],u[[8]],u[[9]],u[[10]],u[[11]])}
+v12=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]],u[[8]],u[[9]],u[[10]],u[[11]], u[[12]])}
+v13=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]],u[[8]],u[[9]],u[[10]],u[[11]], u[[12]], u[[13]])}
+v14=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]],u[[8]],u[[9]],u[[10]],u[[11]], u[[12]], u[[13]], u[[14]])}
+v15=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]],u[[8]],u[[9]],u[[10]],u[[11]], u[[12]], u[[13]], u[[14]], u[[15]])}
+lv=list(v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15)
 l=length(u)
 ti=lv[[l]]
-u=ti()	
+u=ti()
 u=lapply(u, sk1, df1=df1, QME=QME, nrep=nrep, alpha=alpha)
 return(u)
 }
 u=sk2(u);u=sk2(u);u=sk2(u);u=sk2(u);u=sk2(u)
 u=sk2(u);u=sk2(u);u=sk2(u);u=sk2(u);u=sk2(u)
-v1=function(...){c(u[[1]])};v2=function(...){c(u[[1]],u[[2]])};v3=function(...){c(u[[1]],u[[2]],u[[3]])} 
+v1=function(...){c(u[[1]])};v2=function(...){c(u[[1]],u[[2]])};v3=function(...){c(u[[1]],u[[2]],u[[3]])}
 v4=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]])}; v5=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]])}
 v6=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]])}
  v7=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]])}
 v8=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]],u[[8]])}
 v9=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]],u[[8]],u[[9]])}
 v10=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]],u[[8]],u[[9]],u[[10]])}
-lv=list(v1,v2,v3,v4,v5,v6,v7,v8,v9,v10)
+v11=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]],u[[8]],u[[9]],u[[10]],u[[11]])}
+v12=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]],u[[8]],u[[9]],u[[10]],u[[11]], u[[12]])}
+v13=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]],u[[8]],u[[9]],u[[10]],u[[11]], u[[12]], u[[13]])}
+v14=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]],u[[8]],u[[9]],u[[10]],u[[11]], u[[12]], u[[13]], u[[14]])}
+v15=function(...){c(u[[1]],u[[2]],u[[3]],u[[4]],u[[5]],u[[6]],u[[7]],u[[8]],u[[9]],u[[10]],u[[11]], u[[12]], u[[13]], u[[14]], u[[15]])}
+lv=list(v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15)
 l=length(u)
 ti=lv[[l]]
-u=ti()	
+u=ti()
 rp=u
 l2=lapply(rp, length)
 l2=unlist(l2)
 rp2=rep(letters[1:length(rp)], l2)
 return(rp2)
 }
-        
+
+
+
         cv <- function(x) {
             sd = (deviance(x)/df.residual(x))^0.5
             mm = mean(fitted(x))
@@ -784,8 +796,8 @@ rownames(c222)<-NULL
             ddd<-function(x){l=data.frame(mft2[[x]],groups4[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$plot)))
             mft2=lapply(nf2,ddd)
             names(mft2)=n22    
-		cva=round(sqrt(vara)*100/mean(data$response),4); vara=round(vara,4)
-		cvb=round(sqrt(varb)*100/mean(data$response),4);varb=round(varb,4)
+		cva=round(sqrt(vara)*100/mean(data$response, na.rm = TRUE),4); vara=round(vara,4)
+		cvb=round(sqrt(varb)*100/mean(data$response, na.rm = TRUE),4);varb=round(varb,4)
 
 ress=rbind(res[[1]],"Mean Square of Error a"=vara, "Mean Square of Error b"=varb, "Coefficient of Variation a"=cva,"Coefficient of Variation b"=cvb)
 res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
@@ -895,8 +907,8 @@ rownames(c222)<-NULL
             ddd<-function(x){l=data.frame(mft2[[x]],groups4[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$plot)))
             mft2=lapply(nf2,ddd)
             names(mft2)=n22    
-		cva=round(sqrt(vara)*100/mean(data$response),4); vara=round(vara,4)
-		cvb=round(sqrt(varb)*100/mean(data$response),4);varb=round(varb,4)
+		cva=round(sqrt(vara)*100/mean(data$response, na.rm = TRUE),4); vara=round(vara,4)
+		cvb=round(sqrt(varb)*100/mean(data$response, na.rm = TRUE),4);varb=round(varb,4)
 
 ress=rbind(res[[1]],"Mean Square of Error a"=vara, "Mean Square of Error b"=varb, "Coefficient of Variation a"=cva,"Coefficient of Variation b"=cvb)
 res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
@@ -1008,8 +1020,8 @@ rownames(c222)<-NULL
             ddd<-function(x){l=data.frame(mft2[[x]],groups4[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$plot)))
             mft2=lapply(nf2,ddd)
             names(mft2)=n22    
-		cva=round(sqrt(vara)*100/mean(data$response),4); vara=round(vara,4)
-		cvb=round(sqrt(varb)*100/mean(data$response),4);varb=round(varb,4)
+		cva=round(sqrt(vara)*100/mean(data$response, na.rm = TRUE),4); vara=round(vara,4)
+		cvb=round(sqrt(varb)*100/mean(data$response, na.rm = TRUE),4);varb=round(varb,4)
 
 ress=rbind(res[[1]],"Mean Square of Error a"=vara, "Mean Square of Error b"=varb, "Coefficient of Variation a"=cva,"Coefficient of Variation b"=cvb)
 res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
