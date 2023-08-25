@@ -171,7 +171,7 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
         jj=ma[,2]
         auxj <- combn(jj, 2)
         yi=auxj[1,]-auxj[2,]
-        jjj=ma$standard.error^2
+        jjj=ma$sem^2
         auxjj <- combn(jjj, 2)
         si=sqrt((auxjj[1,]+auxjj[2,])/2)
         yx=yi/si; yx=yx^2; yx=sqrt(yx)
@@ -405,6 +405,22 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
         g[[plot]](r)
     }
     
+    fsd=function(data)
+{
+s=split(data,data$treatments)
+f=function(x){sd(s[[x]]$response, na.rm=TRUE)}
+sds=sapply(1:length(s), f); sds=round(sds,4)
+return(sds)
+}
+
+  
+    fquantil=function(data)
+{
+s=split(data,data$treatments)
+f=function(x){quantile(s[[x]]$response, na.rm=TRUE)[c(2,4)]}
+sds=sapply(1:length(s), f); sds=round(sds,4)
+return(sds)
+}
     
     f1 = function(data) {
         names(data) = c("treatments", "response")
@@ -417,9 +433,10 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
         data2 <- na.omit(data)
         res=fr(m,data)
         mean <- round(coef(m1),4)
-        standard.error <- round(sderrs(m1),4)
+        sem <- round(sderrs(m1),4)
+        sd=fsd(data)
         treatment <- levels(data$treatments)
-        ma = data.frame(treatment, mean, standard.error)
+        ma = data.frame(treatment, mean, sd, sem)
         rownames(ma) = NULL;dff=df.residual(m)
         test=fm(ma,dff)
         groups=ft(test, alpha); ma=ma[order(ma[,2], decreasing=TRUE),]
@@ -452,9 +469,10 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
         a3<-fa2(a3,m)
         adjusted.mean <- round(coef(m1)[c(1:nlevels(data$treatments))],4)
         Standart.Error <- round(sderrs(m1),4)
-        standard.error <- Standart.Error[1:nlevels(data$treatments)]
+        sd=fsd(data)
+        sem <- Standart.Error[1:nlevels(data$treatments)]
         treatment <- levels(data$treatments)
-        ma = data.frame(treatment, adjusted.mean, standard.error)
+        ma = data.frame(treatment, adjusted.mean, sd, sem)
         rownames(ma) = NULL;dff=df.residual(m)
         test=fm(ma,dff)
         groups=ft(test, alpha); ma=ma[order(ma[,2], decreasing=TRUE),]
@@ -488,9 +506,10 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
         a3<-fa2(a3,m)
         adjusted.mean <- round(coef(m1)[c(1:nlevels(data$treatments))],4)
         Standart.Error <- round(sderrs(m1),4)
-        standard.error <- Standart.Error[1:nlevels(data$treatments)]
+        sem <- Standart.Error[1:nlevels(data$treatments)]
+                sd=fsd(data)
         treatment <- levels(data$treatments)
-        ma = data.frame(treatment, adjusted.mean, standard.error)
+        ma = data.frame(treatment, adjusted.mean, sd, sem)
         rownames(ma) = NULL;dff=df.residual(m)
         test=fm(ma,dff)
         groups=ft(test, alpha); ma=ma[order(ma[,2], decreasing=TRUE),]
@@ -524,9 +543,10 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
         data2 <- na.omit(data)
         res=fr(m,data2)
         adjusted.mean <- round(coef(m1)[1:nlevels(data$treatments)],4)
-        standard.error <- round(sderrs(m1)[1:nlevels(data$treatments)],4)
+       sem <- round(sderrs(m1)[1:nlevels(data$treatments)],4)
+       sd=fsd(data)
         treatment <- levels(data$treatments)
-        ma = data.frame(treatment, adjusted.mean, standard.error)
+        ma = data.frame(treatment, adjusted.mean, sd,sem)
         rownames(ma) = NULL;dff=df.residual(m)
         test=fm(ma,dff)
         groups=ft(test, alpha); ma=ma[order(ma[,2], decreasing=TRUE),]
@@ -562,9 +582,10 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
         adjusted.mean<-round(coef(m2)[c(1:nlevels(data$treatments))],4)
         aaa=aggregate(.~treatments,data,FUN=length)
         dff=df.residual(m)
-        standard.error<-round(sqrt((deviance(m)/dff)/aaa$ra),4)
+        sem<-round(sqrt((deviance(m)/dff)/aaa$ra),4)
+        sd=fsd(data)
         treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean,standard.error)
+        ma=data.frame(treatment,adjusted.mean,sd,sem)
         rownames(ma)=NULL
         test=fm(ma,dff)
         groups=ft(test, alpha); ma=ma[order(ma[,2], decreasing=TRUE),]
@@ -598,9 +619,10 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
         adjusted.mean<-round(coef(m2)[c(1:nlevels(data$treatments))],4)
         aaa=aggregate(.~treatments,data,FUN=length)
         dff=df.residual(m)
-        standard.error<-round(sqrt((deviance(m)/dff)/aaa$ra),4)
+        sem<-round(sqrt((deviance(m)/dff)/aaa$ra),4)
+                sd=fsd(data)
         treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean,standard.error)
+        ma=data.frame(treatment,adjusted.mean,sd,sem)
         rownames(ma)=NULL
         test=fm(ma,dff)
         groups=ft(test, alpha); ma=ma[order(ma[,2], decreasing=TRUE),]
@@ -627,9 +649,10 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
         data2<-na.omit(data)
         res=fr(m,data2)
         adjusted.mean<-round(coef(m1)[c(1:nlevels(data$treatments))],4)
-        standard.error<-round(sderrs(m1)[c(1:nlevels(data$treatments))],4)
+        sem<-round(sderrs(m1)[c(1:nlevels(data$treatments))],4)
+        sd=fsd(data)
         treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean,standard.error)
+        ma=data.frame(treatment,adjusted.mean,sd, sem)
         rownames(ma)=NULL
         dff=df.residual(m)
         test=fm(ma,dff)
@@ -658,9 +681,10 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
         s=shapiro.test(r)
         cvf=cv(m)
         adjusted.mean<-round(coef(m1)[c(1:nlevels(data$treatments))],4)
-        standard.error<-round(sderrs(m1)[c(1:nlevels(data$treatments))],4)
+        sem<-round(sderrs(m1)[c(1:nlevels(data$treatments))],4)
+                sd=fsd(data)
         treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean,standard.error)
+        ma=data.frame(treatment,adjusted.mean,sd, sem)
         rownames(ma)=NULL
         dff=df.residual(m)
         test=fm(ma,dff)
@@ -687,9 +711,10 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
         data2<-na.omit(data)
         res=fr(m,data2)
         adjusted.mean<-round(coef(m1)[c(1:nlevels(data$treatments))],4)
-        standard.error<-round(sderrs(m1)[c(1:nlevels(data$treatments))],4)
+        sem<-round(sderrs(m1)[c(1:nlevels(data$treatments))],4)
+                        sd=fsd(data)
         treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean,standard.error)
+        ma=data.frame(treatment,adjusted.mean,sd, sem)
         rownames(ma)=NULL
         dff=df.residual(m)
         test=fm(ma,dff)
@@ -718,9 +743,10 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
         data2<-na.omit(data)
         res=fr(m,data2)
         adjusted.mean<-round(coef(m1)[c(1:nlevels(data$treatments))],4)
-        standard.error<-round(sderrs(m1)[c(1:nlevels(data$treatments))],4)
+        sem<-round(sderrs(m1)[c(1:nlevels(data$treatments))],4)
+                                sd=fsd(data)
         treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean,standard.error)
+        ma=data.frame(treatment,adjusted.mean,sd,sem)
         rownames(ma)=NULL
         dff=df.residual(m)
         test=fm(ma,dff)
@@ -758,9 +784,10 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
         s=shapiro.test(r)
         b1=bartlett.test(r~treatments, data=data2)
         adjusted.mean<-round(fixef(m1)[c(1:nlevels(data$treatments))],4)
-        standard.error<-round(sderrs(m1)[c(1:nlevels(data$treatments))],4)
+        sem<-round(sderrs(m1)[c(1:nlevels(data$treatments))],4)
+                                        sd=fsd(data)
         treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean,standard.error)
+        ma=data.frame(treatment,adjusted.mean,sd,sem)
         rownames(ma)=NULL
         dff=a3[[2]][[2]]
         test=fm(ma,dff)
@@ -804,9 +831,10 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
         adjusted.mean<- mean(data$response, na.rm = T)+as.numeric(ef)
         Standart.Error<-sderrs(m) [1:(nlevels(data$animal)+nlevels(data$period)+nlevels(data$treatments)-2)]
         Standart.Error= Standart.Error[-c(1:(nlevels(data$animal)+nlevels(data$period)-1))]
-        standart.error<-c(as.numeric(Standart.Error), as.numeric(Standart.Error)[1])*sqrt(1.5)
+        sem<-c(as.numeric(Standart.Error), as.numeric(Standart.Error)[1])*sqrt(1.5)
+                                                sd=fsd(data)
         treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean=round(adjusted.mean,4),standard.error=round(standart.error,4))
+        ma=data.frame(treatment,adjusted.mean=round(adjusted.mean,4),sd,sem)
         rownames(ma)=NULL; dff=df.residual(m)
         test=fm(ma,dff)
         groups=ft(test, alpha); ma=ma[order(ma[,2], decreasing=TRUE),]
@@ -840,9 +868,10 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
         adjusted.mean<- mean(data$response, na.rm = T)+as.numeric(ef)
         Standart.Error<-sderrs(m)[1:(a[[1]][1]+ a[[1]][2]+a[[1]][3])+1]
         Standart.Error= Standart.Error[-c(1:(a[[1]][1]+a[[1]][2]))]
-        standart.error<-c(as.numeric(Standart.Error), as.numeric(Standart.Error)[1])*sqrt(1.5)
+        sem<-c(as.numeric(Standart.Error), as.numeric(Standart.Error)[1])*sqrt(1.5)
+        sd=fsd(data)
         treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean=round(adjusted.mean,4),standard.error=round(standart.error,4))
+        ma=data.frame(treatment,adjusted.mean=round(adjusted.mean,4),sd,sem)
         rownames(ma)=NULL
         dff=df.residual(m)
         test=fm(ma,dff)
@@ -886,7 +915,9 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
             fmed=function(x){median(s[x][[1]][[1]], na.rm=TRUE)}
             means=as.numeric(lapply(x, fm))
             md=as.numeric(lapply(x, fmed))
-            da=data.frame(names=names(s), ra=as.numeric(ra), n=as.numeric(n), means,md, rank=as.numeric(ra))
+            q1=fquantil(data)[1,]
+            q3=fquantil(data)[2,]
+            da=data.frame(names=names(s), ra=as.numeric(ra), n=as.numeric(n), means,md, rank=as.numeric(ra), q1,q3)
             ma=da[order(da[,2], decreasing=TRUE),]
             j=ma[,1];j=as.character(j)
             aux <- combn(j, 2)
@@ -912,7 +943,7 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
             colnames(med)=c("t", "adjust.Holm", "adjust.Bonferroni", "adjust.fdr" )
             fxx=function(u){s[[u]][,1]}
             sr=lapply(u,fxx)
-            med=data.frame(treatment=rownames(med),rank=round(ma$rank,4),mean=round(ma$means,4), median=round(ma$md,4),med)
+            med=data.frame(treatment=rownames(med),rank=round(ma$rank,4),mean=round(ma$means,4), median=round(ma$md,4),q1=round(ma$q1,4),q3=round(ma$q3,4),med)
             rownames(med)=NULL
             med
             pri=data.frame(round(c(ra2,pq),4));colnames(pri)="Estimates"
@@ -951,7 +982,9 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
             so=so[order(so[,2], decreasing=FALSE),]
             a1=aggregate(.~treatments, data, FUN=mean)
             a2=aggregate(.~treatments, data, FUN=median)
-            da=data.frame(names=levels(a1$treatments), ra=so[,1], means=a1[,3],md=a2[,3])
+            q1=fquantil(data)[1,]
+            q3=fquantil(data)[2,]
+            da=data.frame(names=levels(a1$treatments), ra=so[,1], means=a1[,3],md=a2[,3], q1,q3)
             ma=da[order(da[,2], decreasing=TRUE),]
             j=ma[,1];j=as.character(j)
             aux <- combn(j, 2)
@@ -971,7 +1004,7 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
             colnames(resp)=c("pair", "contrast", "p(non adjusted)" ,"p.adj(Holm)", "p.adj(Bonferroni)", "p.adj(fdr)")
             med=ft(resp, alpha=alpha)
             colnames(med)=c("non adjusted", "adjust.Holm", "adjust.Bonferroni", "adjust.fdr" )
-            med=data.frame(treatment=rownames(med),rank=round(ma$ra,4), mean=round(ma$means,4), median=round(ma$md,4),med)
+            med=data.frame(treatment=rownames(med),rank=round(ma$ra,4), mean=round(ma$means,4), median=round(ma$md,4),q1=round(ma$q1,4),q3=round(ma$q3,4),med)
             rownames(med)=NULL
             med
             pri=data.frame(round(c(cal,pq),4));colnames(pri)="Estimates"

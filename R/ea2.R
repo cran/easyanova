@@ -195,19 +195,19 @@ l=list("residual analysis"=d,"residuals"=r,"standardized residuals"=rp)
             jj=ma[,2]
             auxj <- combn(jj, 2)
             yi=auxj[1,]-auxj[2,]
-            jjj=ma$standard.error^2
+            jjj=ma$sem^2
             auxjj <- combn(jjj, 2)
             si=sqrt((auxjj[1,]+auxjj[2,])/2)
             yx=yi/si; yx=yx^2; yx=sqrt(yx)
             nmeans=length(ma[,1])
-            ft=function(yx, nmeans){1-ptukey(yx,nmeans, dff)}
-            st=ft(yx,nmeans)
+            ftt=function(yx, nmeans){1-ptukey(yx,nmeans, dff)}
+            st=ftt(yx,nmeans)
             st=round(st,4)
             fs=function(ns){s=2:ns;return(s)}
             ns=nmeans:2
             se=sapply(ns, fs)
             ns=unlist(se)
-            ssnk=ft(yx, ns)
+            ssnk=ftt(yx, ns)
             ssnk=round(ssnk,4)
             sd=1-ptukey(yx,ns, dff)^(1/(ns-1))
             sd=round(sd,4)
@@ -407,6 +407,30 @@ l=list("residual analysis"=d,"residuals"=r,"standardized residuals"=rp)
         hgy=data.frame(jjj1,jjj2,jjj3,jjj4); names(hgy)=c("tukey","snk","duncan",nam[[p.adjust]])
             return(hgy)
         }
+        
+            fsd1=function(data)
+{
+s=split(data,data$factor_1)
+f=function(x){sd(s[[x]]$response, na.rm=TRUE)}
+sds=sapply(1:length(s), f); sds=round(sds,4)
+return(sds)
+}
+
+fsd2=function(data)
+{
+s=split(data,data$factor_2)
+f=function(x){sd(s[[x]]$response, na.rm=TRUE)}
+sds=sapply(1:length(s), f); sds=round(sds,4)
+return(sds)
+}
+
+fsd3=function(data)
+{
+s=split(data,data$treatment)
+f=function(x){sd(s[[x]]$response, na.rm=TRUE)}
+sds=sapply(1:length(s), f); sds=round(sds,4)
+return(sds)
+}
 		
 	                
         f1<-function(data,cov){ 
@@ -424,23 +448,33 @@ l=list("residual analysis"=d,"residuals"=r,"standardized residuals"=rp)
             m3<-aov(response~-1+treatments,data=data, contrasts=list(treatments=contr.sum))
             data2<-na.omit(data)
             res=fr(m,data2)
+            
             adjusted.mean<-round(coef(m1)[1:nlevels(data$factor_1)],4)
-            standard.error<-round(sderrs(m1)[1:nlevels(data$factor_1)],4)
+            sem<-round(sderrs(m1)[1:nlevels(data$factor_1)],4)
+            sd=fsd1(data)
             factor_1<-levels(data$factor_1)
  	    means1=adjusted.mean; names(means1)=factor_1
-            maf1=data.frame(factor_1,adjusted.mean,standard.error)
+            maf1=data.frame(factor_1,adjusted.mean,sd, sem)
             rownames(maf1)=NULL
+            
+            
             adjusted.mean<-round(coef(m2)[1:nlevels(data$factor_2)],4)
-            standard.error<-round(sderrs(m2) [1:nlevels(data$factor_2)],4)
+            sem<-round(sderrs(m2) [1:nlevels(data$factor_2)],4)
             factor_2<-levels(data$factor_2)
  	    means2=adjusted.mean; names(means2)=factor_2
-            maf2=data.frame(factor_2,adjusted.mean,standard.error)
+ 	                sd=fsd2(data)
+            maf2=data.frame(factor_2,adjusted.mean,sd,sem)
             rownames(maf2)=NULL
+            
+            
             adjusted.mean<-round(coef(m3),4)
-            standard.error<-round(sderrs(m3),4)
+            sem<-round(sderrs(m3),4)
             treatment<-levels(data$t)
-            mat=data.frame(treatment,adjusted.mean,standard.error)
+             	                sd=fsd3(data)
+            mat=data.frame(treatment,adjusted.mean,sd,sem)
             rownames(mat)=NULL
+            
+            
             dff=df.residual(m)
             test1=fm(maf1,dff)
             test2=fm(maf2,dff)
@@ -519,25 +553,34 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             m3<-aov(response~-1+treatments+blocks,data=data, contrasts=list(treatments=contr.sum, blocks=contr.sum))
             data2<-na.omit(data)
             res=fr(m,data2)
+            
             adjusted.mean<-round(coef(m1)[1:nlevels(data$factor_1)],4)
-            standard.error<-round(sderrs(m1)[1:nlevels(data$factor_1)],4)
+            sem<-round(sderrs(m1)[1:nlevels(data$factor_1)],4)
+            sd=fsd1(data)
             factor_1<-levels(data$factor_1)
  	    means1=adjusted.mean; names(means1)=factor_1
-            maf1=data.frame(factor_1,adjusted.mean,standard.error)
+            maf1=data.frame(factor_1,adjusted.mean,sd, sem)
             rownames(maf1)=NULL
-            adjusted.mean<-coef(m2)[1:nlevels(data$factor_2)]
-            standard.error<-round(sderrs(m2)[1:nlevels(data$factor_2)],4)
+            
+             adjusted.mean<-round(coef(m2)[1:nlevels(data$factor_2)],4)
+            sem<-round(sderrs(m2)[1:nlevels(data$factor_2)],4)
+            sd=fsd2(data)
             factor_2<-levels(data$factor_2)
  	    means2=adjusted.mean; names(means2)=factor_2
-            maf2=data.frame(factor_2,adjusted.mean,standard.error)
+            maf2=data.frame(factor_2,adjusted.mean,sd, sem)
             rownames(maf2)=NULL
-            adjusted.mean<-round(coef(m3)[1:nlevels(data$treatments)],4)
-            standard.error<-round(sderrs(m3)[1:nlevels(data$factor_2)],4)
-            treatment<-levels(data$treatments)
- 	    means3=adjusted.mean; names(means3)=treatment
-            mat=data.frame(treatment,adjusted.mean,standard.error)
+            
+             
+           adjusted.mean<-round(coef(m3)[1:nlevels(data$treatments)],4)
+                       treatment<-levels(data$treatments)
+                                  sem<-round(sderrs(m3)[1:nlevels(data$treatments)],4)
+             	                sd=fsd3(data)
+            mat=data.frame(treatment,adjusted.mean,sd,sem)
             rownames(mat)=NULL
-            dff=df.residual(m)
+            
+
+
+                       dff=df.residual(m)
             test1=fm(maf1,dff)
             test2=fm(maf2,dff)
 	    nrep1=length(data2[,1])/length(factor_1)
@@ -616,24 +659,33 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             m3<-aov(response~-1+treatments +rows+columns,data=data, contrasts=list(treatments=contr.sum, rows=contr.sum, columns=contr.sum))
 	    data2<-na.omit(data)
             res=fr(m,data2)
+            
+            
             adjusted.mean<-round(coef(m1)[1:nlevels(data$factor_1)],4)
-            standard.error<-round(sderrs(m1) [1:nlevels(data$factor_1)],4)
+            sem<-round(sderrs(m1)[1:nlevels(data$factor_1)],4)
+            sd=fsd1(data)
             factor_1<-levels(data$factor_1)
  	    means1=adjusted.mean; names(means1)=factor_1
-            maf1=data.frame(factor_1,adjusted.mean,standard.error)
+            maf1=data.frame(factor_1,adjusted.mean,sd, sem)
             rownames(maf1)=NULL
-            adjusted.mean<-coef(m2)[1:nlevels(data$factor_2)]
-            standard.error<-round(sderrs(m2)[1:nlevels(data$factor_2)],4)
+            
+             adjusted.mean<-round(coef(m2)[1:nlevels(data$factor_2)],4)
+            sem<-round(sderrs(m2)[1:nlevels(data$factor_2)],4)
+            sd=fsd2(data)
             factor_2<-levels(data$factor_2)
  	    means2=adjusted.mean; names(means2)=factor_2
-            maf2=data.frame(factor_2,adjusted.mean,standard.error)
+            maf2=data.frame(factor_2,adjusted.mean,sd, sem)
             rownames(maf2)=NULL
-            adjusted.mean<-round(coef(m3)[1:nlevels(data$treatments)],4)
-            standard.error<-round(sderrs(m3)[1:nlevels(data$factor_2)],4)
-            treatment<-levels(data$t)
- 	    means3=adjusted.mean; names(means3)=treatment
-            mat=data.frame(treatment,adjusted.mean,standard.error)
+            
+             
+           adjusted.mean<-round(coef(m3)[1:nlevels(data$treatments)],4)
+                       treatment<-levels(data$treatments)
+                                  sem<-round(sderrs(m3)[1:nlevels(data$treatments)],4)
+             	                sd=fsd3(data)
+            mat=data.frame(treatment,adjusted.mean,sd,sem)
             rownames(mat)=NULL
+            
+                 
             dff=df.residual(m)
 	    nrep1=length(data2[,1])/length(factor_1)
 	    nrep2=length(data2[,1])/length(factor_2)

@@ -1,7 +1,7 @@
-0dd939a074f5351ce8bbd97270afafcb *DESCRIPTION
-d7652abd59f991c4200777c7ae6cb96a *NAMESPACE
-f2093eff571697fcb8aa5803e331e755 *R/ea1.R
-1398f04c4ccd0e0550e5318eb78dfb47 *R/ea2.R
+1feaaafef4203933daaf9e8914abbe7c *DESCRIPTION
+d2bdb75f170d3c7ee1992d772ac1d026 *NAMESPACE
+1e2b3833300dcc2fbb42750cf2da0dbf *R/ea1.R
+798398830d2024155571be66bc0d2e7b *R/ea2.R
 f936da9979a6d78c811b07cef6bdad8f *R/ec.R
 b105ae919a786d33d3b32b2caf547dac *data/data1.rda
 e02ece2c54ce110ddeb64fad0f6bfef7 *data/data10.rda
@@ -22,7 +22,7 @@ a320b99c2cb0f5d7fe707161561f98a5 *data/data6.rda
 0d8bbcc45460330057f87e28ddf56836 *data/data7.rda
 70485fb7014d0970060828ff8b21fde7 *data/data8.rda
 b7cde009f06318efaba9ab084d074992 *data/data9.rda
-c9db39ad1a14a740f682bab279eab92c *inst/CITATION
+a44e69518acd2aeb01e69abbbd9b3f74 *inst/CITATION
 e5a20b057087004e0a2e33e55ac8d838 *man/data1.Rd
 bb1d1b247bc30174df82022ee30d9bae *man/data10.Rd
 9efe29ba859dd96fe79173c312b9e8d2 *man/data11.Rd
@@ -44,5 +44,5 @@ c70b307caac011ffdbec58e6dec96533 *man/data5.Rd
 2d3e91da073e01c78dcb856048920202 *man/data9.Rd
 79f8cc8d31b198acf82cbc71434591c8 *man/ea1.Rd
 04b0d481ba859220e112708c0a66fcc8 *man/ea2.Rd
-02e110133bfce6b4171ac660d6a7fd85 *man/easyanova-package.Rd
+03091c7ad44a1f67d40b509fd8c9d659 *man/easyanova-package.Rd
 4d513b39f6243559c06d580a699ade47 *man/ec.Rd

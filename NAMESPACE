@@ -6,7 +6,7 @@ importFrom("stats", AIC, BIC, aggregate, anova, aov,
            pchisq, pnorm, pt, ptukey, qchisq, qqline,
            qqnorm, resid, shapiro.test, terms, vcov, drop1)
 importFrom("utils", combn)
-importFrom("stats", "na.exclude", "sigma")
+importFrom("stats", "na.exclude", "sigma", "quantile", "sd")
 export("ea1")
 export("ea2")
 export("ec")
