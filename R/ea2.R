@@ -186,6 +186,43 @@ l=list("residual analysis"=d,"residuals"=r,"standardized residuals"=rp)
         return(d)
     }
         
+        
+         fmm=function(ma,dff){
+            ma=data.frame(ma,co=ma[,1])
+            ma=ma[order(ma[,2], decreasing=TRUE),]
+            j=ma[,1];j=as.character(j)
+            aux <- combn(j, 2)
+            w <- apply(aux, 2, paste, collapse = " - ")
+            jj=ma[,2]
+            auxj <- combn(jj, 2)
+            yi=auxj[1,]-auxj[2,]
+            jjj=ma$standard.error^2
+            auxjj <- combn(jjj, 2)
+            si=sqrt((auxjj[1,]+auxjj[2,])/2)
+            yx=yi/si; yx=yx^2; yx=sqrt(yx)
+            nmeans=length(ma[,1])
+            ft=function(yx, nmeans){1-ptukey(yx,nmeans, dff)}
+            st=ft(yx,nmeans)
+            st=round(st,4)
+            fs=function(ns){s=2:ns;return(s)}
+            ns=nmeans:2
+            se=sapply(ns, fs)
+            ns=unlist(se)
+            ssnk=ft(yx, ns)
+            ssnk=round(ssnk,4)
+            sd=1-ptukey(yx,ns, dff)^(1/(ns-1))
+            sd=round(sd,4)
+            yxx=yi/(si*sqrt(2))
+            vt=1-pt(yxx,dff); vt=vt*2
+            vt=round(vt,4)
+            lp=list("none","holm", "hochberg", "hommel", "bonferroni", "BH", "BY","fdr")
+	pf=p.adjust(vt, lp[[p.adjust]])
+        ggs=data.frame(w,round(yi,4),st, ssnk, sd, round(pf,4))
+	nam=list("p(t)","p(t)adjust.holm", "p(t)adjust.hochberg", "p(t)adjust.hommel", "p(t)adjust.bonferroni", "p(t)adjust.BH", "p(t)adjust.BY","p(t)adjust.fdr")
+        colnames(ggs)=c("pair", "contrast","p(tukey)", "p(snk)", "p(duncan)", nam[[p.adjust]])
+        return(ggs)
+    }
+        
         fm=function(ma,dff){
             ma=data.frame(ma,co=ma[,1])
             ma=ma[order(ma[,2], decreasing=TRUE),]
@@ -811,8 +848,8 @@ df1a=((vara+(J*varb))^2)/( ((vara^2)/df1)+(((J*varb)^2)/df2))
 	   colnames(a222)<-c("split.plot","adjusted.mean", "standard.error")
            rownames(a222)<-NULL
             res=fr2(m,data)
-            test1=fm(a11,df1)
-            test2=fm(a222,df2)
+            test1=fmm(a11,df1)
+            test2=fmm(a222,df2)
             groups1=ft(test1, alpha); a11=a11[order(a11[,2], decreasing=TRUE),]
             mf1=data.frame(a11,groups1);rownames(mf1) = NULL
             groups2=ft(test2, alpha); a22=a22[order(a22[,2], decreasing=TRUE),]
@@ -820,7 +857,7 @@ df1a=((vara+(J*varb))^2)/( ((vara^2)/df1)+(((J*varb)^2)/df2))
             c1=rep(1:nlevels(data$split.plot), each=nlevels(data$plot))
             cs1=split(c, c1)
            #### trocados os dfs  
- test3=lapply(cs1, fm, dff=df1a); n1=rep("plot in", nlevels(data$split.plot));n11=data.frame(n1,levels(data$split.plot)) 
+ test3=lapply(cs1, fmm, dff=df1a); n1=rep("plot in", nlevels(data$split.plot));n11=data.frame(n1,levels(data$split.plot)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test3)=n11
             c2=rep(1:nlevels(data$plot), nlevels(data$split.plot))
@@ -834,7 +871,7 @@ rownames(c222)<-NULL
  cs222=split(c222, c2)
  
 #######################
-            test4=lapply(cs222, fm, dff=df2); n2=rep("split.plot in", nlevels(data$plot));n22=data.frame(n2,levels(data$plot)) 
+            test4=lapply(cs222, fmm, dff=df2); n2=rep("split.plot in", nlevels(data$plot));n22=data.frame(n2,levels(data$plot)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test4)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -922,8 +959,8 @@ df1a=((vara+(J*varb))^2)/( ((vara^2)/df1)+(((J*varb)^2)/df2))
 	   colnames(a222)<-c("split.plot","adjusted.mean", "standard.error")
            rownames(a222)<-NULL
             res=fr2(m,data)
-            test1=fm(a11,df1)
-            test2=fm(a222,df2)
+            test1=fmm(a11,df1)
+            test2=fmm(a222,df2)
             groups1=ft(test1, alpha); a11=a11[order(a11[,2], decreasing=TRUE),]
             mf1=data.frame(a11,groups1);rownames(mf1) = NULL
             groups2=ft(test2, alpha); a22=a22[order(a22[,2], decreasing=TRUE),]
@@ -931,7 +968,7 @@ df1a=((vara+(J*varb))^2)/( ((vara^2)/df1)+(((J*varb)^2)/df2))
             c1=rep(1:nlevels(data$split.plot), each=nlevels(data$plot))
             cs1=split(c, c1)
            #### trocados os dfs  
- test3=lapply(cs1, fm, dff=df1a); n1=rep("plot in", nlevels(data$split.plot));n11=data.frame(n1,levels(data$split.plot)) 
+ test3=lapply(cs1, fmm, dff=df1a); n1=rep("plot in", nlevels(data$split.plot));n11=data.frame(n1,levels(data$split.plot)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test3)=n11
             c2=rep(1:nlevels(data$plot), nlevels(data$split.plot))
@@ -945,7 +982,7 @@ rownames(c222)<-NULL
  cs222=split(c222, c2)
  
 #######################
-            test4=lapply(cs222, fm, dff=df2); n2=rep("split.plot in", nlevels(data$plot));n22=data.frame(n2,levels(data$plot)) 
+            test4=lapply(cs222, fmm, dff=df2); n2=rep("split.plot in", nlevels(data$plot));n22=data.frame(n2,levels(data$plot)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test4)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1035,8 +1072,8 @@ df1a=((vara+(J*varb))^2)/( ((vara^2)/df1)+(((J*varb)^2)/df2))
 	   colnames(a222)<-c("split.plot","adjusted.mean", "standard.error")
            rownames(a222)<-NULL
             res=fr2(m,data)
-            test1=fm(a11,df1)
-            test2=fm(a222,df2)
+            test1=fmm(a11,df1)
+            test2=fmm(a222,df2)
             groups1=ft(test1, alpha); a11=a11[order(a11[,2], decreasing=TRUE),]
             mf1=data.frame(a11,groups1);rownames(mf1) = NULL
             groups2=ft(test2, alpha); a22=a22[order(a22[,2], decreasing=TRUE),]
@@ -1044,7 +1081,7 @@ df1a=((vara+(J*varb))^2)/( ((vara^2)/df1)+(((J*varb)^2)/df2))
             c1=rep(1:nlevels(data$split.plot), each=nlevels(data$plot))
             cs1=split(c, c1)
            #### trocados os dfs  
- test3=lapply(cs1, fm, dff=df1a); n1=rep("plot in", nlevels(data$split.plot));n11=data.frame(n1,levels(data$split.plot)) 
+ test3=lapply(cs1, fmm, dff=df1a); n1=rep("plot in", nlevels(data$split.plot));n11=data.frame(n1,levels(data$split.plot)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test3)=n11
             c2=rep(1:nlevels(data$plot), nlevels(data$split.plot))
@@ -1058,7 +1095,7 @@ rownames(c222)<-NULL
  cs222=split(c222, c2)
  
 #######################
-            test4=lapply(cs222, fm, dff=df2); n2=rep("split.plot in", nlevels(data$plot));n22=data.frame(n2,levels(data$plot)) 
+            test4=lapply(cs222, fmm, dff=df2); n2=rep("split.plot in", nlevels(data$plot));n22=data.frame(n2,levels(data$plot)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test4)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1149,9 +1186,9 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             mat4=data.frame(treatments_f1f2f3,adjusted.mean,standard.error)
             rownames(mat4)=NULL
             dff=df.residual(m)
-            test1=fm(maf1,dff)
-            test2=fm(maf2,dff)
-            test3=fm(maf3,dff)
+            test1=fmm(maf1,dff)
+            test2=fmm(maf2,dff)
+            test3=fmm(maf3,dff)
             groups1=ft(test1, alpha); maf1=maf1[order(maf1[,2], decreasing=TRUE),]
             mf1=data.frame(maf1,groups1)
             rownames(mf1) = NULL
@@ -1163,12 +1200,12 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             rownames(mf3) = NULL
             c1=rep(1:nlevels(data$factor_2), each=nlevels(data$factor_1))
             cs1=split(mat1, c1)
-            test4=lapply(cs1, fm, dff=dff); n1=rep("factor_1 in", nlevels(data$factor_2));n11=data.frame(n1,levels(data$factor_2)) 
+            test4=lapply(cs1, fmm, dff=dff); n1=rep("factor_1 in", nlevels(data$factor_2));n11=data.frame(n1,levels(data$factor_2)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test4)=n11
             c2=rep(1:nlevels(data$factor_1), nlevels(data$factor_2))
             cs2=split(mat1, c2)
-            test5=lapply(cs2, fm, dff=dff); n2=rep("factor_2 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
+            test5=lapply(cs2, fmm, dff=dff); n2=rep("factor_2 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test5)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1184,12 +1221,12 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             names(mft2)=n22
             c1=rep(1:nlevels(data$factor_3), each=nlevels(data$factor_1))
             cs1=split(mat2, c1)
-            test6=lapply(cs1, fm, dff=dff); n1=rep("factor_1 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
+            test6=lapply(cs1, fmm, dff=dff); n1=rep("factor_1 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test6)=n11
             c2=rep(1:nlevels(data$factor_1), nlevels(data$factor_3))
             cs2=split(mat2, c2)
-            test7=lapply(cs2, fm, dff=dff); n2=rep("factor_3 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
+            test7=lapply(cs2, fmm, dff=dff); n2=rep("factor_3 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test7)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1205,12 +1242,12 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             names(mft4)=n22
             c1=rep(1:nlevels(data$factor_3), each=nlevels(data$factor_2))
             cs1=split(mat3, c1)
-            test8=lapply(cs1, fm, dff=dff); n1=rep("factor_2 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
+            test8=lapply(cs1, fmm, dff=dff); n1=rep("factor_2 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test8)=n11
             c2=rep(1:nlevels(data$factor_2), nlevels(data$factor_3))
             cs2=split(mat3, c2)
-            test9=lapply(cs2, fm, dff=dff); n2=rep("factor_3 in", nlevels(data$factor_2));n22=data.frame(n2,levels(data$factor_2)) 
+            test9=lapply(cs2, fmm, dff=dff); n2=rep("factor_3 in", nlevels(data$factor_2));n22=data.frame(n2,levels(data$factor_2)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test9)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1226,7 +1263,7 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             names(mft6)=n22
             c1=rep(1:nlevels(data$treatments_f2f3), each=nlevels(data$factor_1))
             cs1=split(mat4, c1)
-            test10=lapply(cs1, fm, dff=dff); n1=rep("factor_1 in", nlevels(data$treatments_f2f3));n11=data.frame(n1,levels(data$treatments_f2f3)) 
+            test10=lapply(cs1, fmm, dff=dff); n1=rep("factor_1 in", nlevels(data$treatments_f2f3));n11=data.frame(n1,levels(data$treatments_f2f3)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test10)=n11
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1241,7 +1278,7 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
 	c1=rep(1:nlevels(data$factor_1), nlevels(data$factor_2));c1=rep(c1,nlevels(data$factor_3))
             s=rep(0:(nlevels(data$factor_3)-1), each=nlevels(data$treatments_f1f2)); oi=max(c1); s=oi*s; c1=c1+s
             cs1=split(mat4, c1)
-            test11=lapply(cs1, fm, dff=dff); n1=rep("factor_2 in", nlevels(data$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3))
+            test11=lapply(cs1, fmm, dff=dff); n1=rep("factor_2 in", nlevels(data$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3))
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test11)=n11
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1255,7 +1292,7 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
 
             c1=rep(1:nlevels(data$treatments_f1f2), nlevels(data$factor_3))
             cs1=split(mat4, c1)
-            test12=lapply(cs1, fm, dff=dff); n1=rep("factor_3 in", nlevels(data$treatments_f1f2));n11=data.frame(n1,levels(data$treatments_f1f2)) 
+            test12=lapply(cs1, fmm, dff=dff); n1=rep("factor_3 in", nlevels(data$treatments_f1f2));n11=data.frame(n1,levels(data$treatments_f1f2)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test12)=n11
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1332,9 +1369,9 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             mat4=data.frame(treatments_f1f2f3,adjusted.mean,standard.error)
             rownames(mat4)=NULL
             dff=df.residual(m)
-            test1=fm(maf1,dff)
-            test2=fm(maf2,dff)
-            test3=fm(maf3,dff)
+            test1=fmm(maf1,dff)
+            test2=fmm(maf2,dff)
+            test3=fmm(maf3,dff)
             groups1=ft(test1, alpha); maf1=maf1[order(maf1[,2], decreasing=TRUE),]
             mf1=data.frame(maf1,groups1)
             rownames(mf1) = NULL
@@ -1346,12 +1383,12 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             rownames(mf3) = NULL
             c1=rep(1:nlevels(data$factor_2), each=nlevels(data$factor_1))
             cs1=split(mat1, c1)
-            test4=lapply(cs1, fm, dff=dff); n1=rep("factor_1 in", nlevels(data$factor_2));n11=data.frame(n1,levels(data$factor_2)) 
+            test4=lapply(cs1, fmm, dff=dff); n1=rep("factor_1 in", nlevels(data$factor_2));n11=data.frame(n1,levels(data$factor_2)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test4)=n11
             c2=rep(1:nlevels(data$factor_1), nlevels(data$factor_2))
             cs2=split(mat1, c2)
-            test5=lapply(cs2, fm, dff=dff); n2=rep("factor_2 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
+            test5=lapply(cs2, fmm, dff=dff); n2=rep("factor_2 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test5)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1367,12 +1404,12 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             names(mft2)=n22
             c1=rep(1:nlevels(data$factor_3), each=nlevels(data$factor_1))
             cs1=split(mat2, c1)
-            test6=lapply(cs1, fm, dff=dff); n1=rep("factor_1 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
+            test6=lapply(cs1, fmm, dff=dff); n1=rep("factor_1 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test6)=n11
             c2=rep(1:nlevels(data$factor_1), nlevels(data$factor_3))
             cs2=split(mat2, c2)
-            test7=lapply(cs2, fm, dff=dff); n2=rep("factor_3 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
+            test7=lapply(cs2, fmm, dff=dff); n2=rep("factor_3 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test7)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1388,12 +1425,12 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             names(mft4)=n22
             c1=rep(1:nlevels(data$factor_3), each=nlevels(data$factor_2))
             cs1=split(mat3, c1)
-            test8=lapply(cs1, fm, dff=dff); n1=rep("factor_2 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
+            test8=lapply(cs1, fmm, dff=dff); n1=rep("factor_2 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test8)=n11
             c2=rep(1:nlevels(data$factor_2), nlevels(data$factor_3))
             cs2=split(mat3, c2)
-            test9=lapply(cs2, fm, dff=dff); n2=rep("factor_3 in", nlevels(data$factor_2));n22=data.frame(n2,levels(data$factor_2)) 
+            test9=lapply(cs2, fmm, dff=dff); n2=rep("factor_3 in", nlevels(data$factor_2));n22=data.frame(n2,levels(data$factor_2)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test9)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1409,7 +1446,7 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             names(mft6)=n22
             c1=rep(1:nlevels(data$treatments_f2f3), each=nlevels(data$factor_1))
             cs1=split(mat4, c1)
-            test10=lapply(cs1, fm, dff=dff); n1=rep("factor_1 in", nlevels(data$treatments_f2f3));n11=data.frame(n1,levels(data$treatments_f2f3)) 
+            test10=lapply(cs1, fmm, dff=dff); n1=rep("factor_1 in", nlevels(data$treatments_f2f3));n11=data.frame(n1,levels(data$treatments_f2f3)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test10)=n11
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1423,7 +1460,7 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             c1=rep(1:nlevels(data$factor_1), nlevels(data$factor_2));c1=rep(c1,nlevels(data$factor_3))
             s=rep(0:(nlevels(data$factor_3)-1), each=nlevels(data$treatments_f1f2)); oi=max(c1); s=oi*s; c1=c1+s
             cs1=split(mat4, c1)
-            test11=lapply(cs1, fm, dff=dff); n1=rep("factor_2 in", nlevels(data$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3))
+            test11=lapply(cs1, fmm, dff=dff); n1=rep("factor_2 in", nlevels(data$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3))
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test11)=n11
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1436,7 +1473,7 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
 
             c1=rep(1:nlevels(data$treatments_f1f2), nlevels(data$factor_3))
             cs1=split(mat4, c1)
-            test12=lapply(cs1, fm, dff=dff); n1=rep("factor_3 in", nlevels(data$treatments_f1f2));n11=data.frame(n1,levels(data$treatments_f1f2)) 
+            test12=lapply(cs1, fmm, dff=dff); n1=rep("factor_3 in", nlevels(data$treatments_f1f2));n11=data.frame(n1,levels(data$treatments_f1f2)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test12)=n11
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1527,9 +1564,9 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             treatments_f1f2f3<-levels(data$treatments_f1f2f3)
             mat4=data.frame(treatments_f1f2f3,adjusted.mean,standard.error)
             rownames(mat4)=NULL
-            test1=fm(maf1,df1)
-            test2=fm(maf2,df1)
-            test3=fm(maf3,df2)
+            test1=fmm(maf1,df1)
+            test2=fmm(maf2,df1)
+            test3=fmm(maf3,df2)
             groups1=ft(test1, alpha); maf1=maf1[order(maf1[,2], decreasing=TRUE),]
             mf1=data.frame(maf1,groups1)
             rownames(mf1) = NULL
@@ -1542,12 +1579,12 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             c1=rep(1:nlevels(data$factor_2), each=nlevels(data$factor_1))
             cs1=split(mat1, c1)
             
-            test4=lapply(cs1, fm, dff=df1); n1=rep("factor_1 in", nlevels(data$factor_2));n11=data.frame(n1,levels(data$factor_2)) 
+            test4=lapply(cs1, fmm, dff=df1); n1=rep("factor_1 in", nlevels(data$factor_2));n11=data.frame(n1,levels(data$factor_2)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test4)=n11
             c2=rep(1:nlevels(data$factor_1), nlevels(data$factor_2))
             cs2=split(mat1, c2)
-            test5=lapply(cs2, fm, dff=df1); n2=rep("factor_2 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
+            test5=lapply(cs2, fmm, dff=df1); n2=rep("factor_2 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test5)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1563,12 +1600,12 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             names(mft2)=n22
             c1=rep(1:nlevels(data$factor_3), each=nlevels(data$factor_1))
             cs1=split(mat2, c1)
-            test6=lapply(cs1, fm, dff=df2); n1=rep("factor_1 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
+            test6=lapply(cs1, fmm, dff=df2); n1=rep("factor_1 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test6)=n11
             c2=rep(1:nlevels(data$factor_1), nlevels(data$factor_3))
             cs2=split(mat2, c2)
-            test7=lapply(cs2, fm, dff=df2); n2=rep("factor_3 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
+            test7=lapply(cs2, fmm, dff=df2); n2=rep("factor_3 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test7)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1584,12 +1621,12 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             names(mft4)=n22
             c1=rep(1:nlevels(data$factor_3), each=nlevels(data$factor_2))
             cs1=split(mat3, c1)
-            test8=lapply(cs1, fm, dff=df2); n1=rep("factor_2 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
+            test8=lapply(cs1, fmm, dff=df2); n1=rep("factor_2 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test8)=n11
             c2=rep(1:nlevels(data$factor_2), nlevels(data$factor_3))
             cs2=split(mat3, c2)
-            test9=lapply(cs2, fm, dff=df2); n2=rep("factor_3 in", nlevels(data$factor_2));n22=data.frame(n2,levels(data$factor_2)) 
+            test9=lapply(cs2, fmm, dff=df2); n2=rep("factor_3 in", nlevels(data$factor_2));n22=data.frame(n2,levels(data$factor_2)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test9)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1605,7 +1642,7 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             names(mft6)=n22
             c1=rep(1:nlevels(data$treatments_f2f3), each=nlevels(data$factor_1))
             cs1=split(mat4, c1)
-            test10=lapply(cs1, fm, dff=df2); n1=rep("factor_1 in", nlevels(data$treatments_f2f3));n11=data.frame(n1,levels(data$treatments_f2f3)) 
+            test10=lapply(cs1, fmm, dff=df2); n1=rep("factor_1 in", nlevels(data$treatments_f2f3));n11=data.frame(n1,levels(data$treatments_f2f3)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test10)=n11
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1619,7 +1656,7 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             c1=rep(1:nlevels(data$factor_1), nlevels(data$factor_2));c1=rep(c1,nlevels(data$factor_3))
             s=rep(0:(nlevels(data$factor_3)-1), each=nlevels(data$treatments_f1f2)); oi=max(c1); s=oi*s; c1=c1+s
             cs1=split(mat4, c1)
-            test11=lapply(cs1, fm, dff=df2); n1=rep("factor_2 in", nlevels(data$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3))
+            test11=lapply(cs1, fmm, dff=df2); n1=rep("factor_2 in", nlevels(data$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3))
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test11)=n11
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1633,7 +1670,7 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
 
             c1=rep(1:nlevels(data$treatments_f1f2), nlevels(data$factor_3))
             cs1=split(mat4, c1)
-            test12=lapply(cs1, fm, dff=df2); n1=rep("factor_3 in", nlevels(data$treatments_f1f2));n11=data.frame(n1,levels(data$treatments_f1f2)) 
+            test12=lapply(cs1, fmm, dff=df2); n1=rep("factor_3 in", nlevels(data$treatments_f1f2));n11=data.frame(n1,levels(data$treatments_f1f2)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test12)=n11
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1725,9 +1762,9 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             treatments_f1f2f3<-levels(data$treatments_f1f2f3)
             mat4=data.frame(treatments_f1f2f3,adjusted.mean,standard.error)
             rownames(mat4)=NULL
-            test1=fm(maf1,df1)
-            test2=fm(maf2,df1)
-            test3=fm(maf3,df2)
+            test1=fmm(maf1,df1)
+            test2=fmm(maf2,df1)
+            test3=fmm(maf3,df2)
             groups1=ft(test1, alpha); maf1=maf1[order(maf1[,2], decreasing=TRUE),]
             mf1=data.frame(maf1,groups1)
             rownames(mf1) = NULL
@@ -1739,12 +1776,12 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             rownames(mf3) = NULL
             c1=rep(1:nlevels(data$factor_2), each=nlevels(data$factor_1))
             cs1=split(mat1, c1)
-            test4=lapply(cs1, fm, dff=df1); n1=rep("factor_1 in", nlevels(data$factor_2));n11=data.frame(n1,levels(data$factor_2)) 
+            test4=lapply(cs1, fmm, dff=df1); n1=rep("factor_1 in", nlevels(data$factor_2));n11=data.frame(n1,levels(data$factor_2)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test4)=n11
             c2=rep(1:nlevels(data$factor_1), nlevels(data$factor_2))
             cs2=split(mat1, c2)
-            test5=lapply(cs2, fm, dff=df1); n2=rep("factor_2 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
+            test5=lapply(cs2, fmm, dff=df1); n2=rep("factor_2 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test5)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1760,12 +1797,12 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             names(mft2)=n22
             c1=rep(1:nlevels(data$factor_3), each=nlevels(data$factor_1))
             cs1=split(mat2, c1)
-            test6=lapply(cs1, fm, dff=df2); n1=rep("factor_1 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
+            test6=lapply(cs1, fmm, dff=df2); n1=rep("factor_1 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test6)=n11
             c2=rep(1:nlevels(data$factor_1), nlevels(data$factor_3))
             cs2=split(mat2, c2)
-            test7=lapply(cs2, fm, dff=df2); n2=rep("factor_3 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
+            test7=lapply(cs2, fmm, dff=df2); n2=rep("factor_3 in", nlevels(data$factor_1));n22=data.frame(n2,levels(data$factor_1)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test7)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1781,12 +1818,12 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             names(mft4)=n22
             c1=rep(1:nlevels(data$factor_3), each=nlevels(data$factor_2))
             cs1=split(mat3, c1)
-            test8=lapply(cs1, fm, dff=df2); n1=rep("factor_2 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
+            test8=lapply(cs1, fmm, dff=df2); n1=rep("factor_2 in", nlevels(data$factor_3));n11=data.frame(n1,levels(data$factor_3)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test8)=n11
             c2=rep(1:nlevels(data$factor_2), nlevels(data$factor_3))
             cs2=split(mat3, c2)
-            test9=lapply(cs2, fm, dff=df2); n2=rep("factor_3 in", nlevels(data$factor_2));n22=data.frame(n2,levels(data$factor_2)) 
+            test9=lapply(cs2, fmm, dff=df2); n2=rep("factor_3 in", nlevels(data$factor_2));n22=data.frame(n2,levels(data$factor_2)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test9)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1802,7 +1839,7 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             names(mft6)=n22
             c1=rep(1:nlevels(data$treatments_f2f3), each=nlevels(data$factor_1))
             cs1=split(mat4, c1)
-            test10=lapply(cs1, fm, dff=df2); n1=rep("factor_1 in", nlevels(data$treatments_f2f3));n11=data.frame(n1,levels(data$treatments_f2f3)) 
+            test10=lapply(cs1, fmm, dff=df2); n1=rep("factor_1 in", nlevels(data$treatments_f2f3));n11=data.frame(n1,levels(data$treatments_f2f3)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test10)=n11
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1816,7 +1853,7 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
 	c1=rep(1:nlevels(data$factor_1), nlevels(data$factor_2));c1=rep(c1,nlevels(data$factor_3))
             s=rep(0:(nlevels(data$factor_3)-1), each=nlevels(data$treatments_f1f2)); oi=max(c1); 	s=oi*s; c1=c1+s
             cs1=split(mat4, c1)
-            test11=lapply(cs1, fm, dff=df2); n1=rep("factor_2 in", nlevels(data		$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3))
+            test11=lapply(cs1, fmm, dff=df2); n1=rep("factor_2 in", nlevels(data		$treatments_f1f3));n11=data.frame(n1,levels(data$treatments_f1f3))
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test11)=n11
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1829,7 +1866,7 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
 
             c1=rep(1:nlevels(data$treatments_f1f2), nlevels(data$factor_3))
             cs1=split(mat4, c1)
-            test12=lapply(cs1, fm, dff=df2); n1=rep("factor_3 in", nlevels(data$treatments_f1f2));n11=data.frame(n1,levels(data$treatments_f1f2)) 
+            test12=lapply(cs1, fmm, dff=df2); n1=rep("factor_3 in", nlevels(data$treatments_f1f2));n11=data.frame(n1,levels(data$treatments_f1f2)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test12)=n11
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
@@ -1893,8 +1930,8 @@ interaction<-levels(data$interaction)
             mat=data.frame(interaction,adjusted.mean,standard.error) 
             rownames(mat)=NULL 
             dff=df.residual(m) 
-            test1=fm(maf1,dff) 
-            test2=fm(maf2,dff) 
+            test1=fmm(maf1,dff) 
+            test2=fmm(maf2,dff) 
 	    nrep1=length(data2[,1])/length(treatment) 
 	    nrep2=length(data2[,1])/length(experiment) 
 	    nrep3=length(data2[,1])/length(interaction) 
@@ -1909,12 +1946,12 @@ interaction<-levels(data$interaction)
             rownames(mf2) = NULL 
             c1=rep(1:nlevels(data$experiment), each=nlevels(data$treatment)) 
             cs1=split(mat, c1) 
-            test3=lapply(cs1, fm, dff=dff); n1=rep("treatment in", nlevels(data$experiment));n11=data.frame(n1,levels(data$experiment)) 
+            test3=lapply(cs1, fmm, dff=dff); n1=rep("treatment in", nlevels(data$experiment));n11=data.frame(n1,levels(data$experiment)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ") 
             names(test3)=n11 
             c2=rep(1:nlevels(data$treatment), nlevels(data$experiment)) 
             cs2=split(mat, c2) 
-            test4=lapply(cs2, fm, dff=dff); n2=rep("experiment in", nlevels(data$treatment));n22=data.frame(n2,levels(data$treatment)) 
+            test4=lapply(cs2, fmm, dff=dff); n2=rep("experiment in", nlevels(data$treatment));n22=data.frame(n2,levels(data$treatment)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ") 
             names(test4)=n22 
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)} 
@@ -2016,8 +2053,8 @@ square<-levels(data$squares)
             mat=data.frame(interaction,adjusted.mean,standard.error) 
             rownames(mat)=NULL 
             dff=df.residual(m) 
-            test1=fm(maf1,dff) 
-            test2=fm(maf2,dff) 
+            test1=fmm(maf1,dff) 
+            test2=fmm(maf2,dff) 
 	    nrep1=length(data2[,1])/length(treatment) 
 	    nrep2=length(data2[,1])/length(square) 
 	    nrep3=length(data2[,1])/length(interaction) 
@@ -2032,12 +2069,12 @@ square<-levels(data$squares)
             rownames(mf2) = NULL 
             c1=rep(1:nlevels(data$squares), each=nlevels(data$treatments)) 
             cs1=split(mat, c1) 
-            test3=lapply(cs1, fm, dff=dff); n1=rep("treatments in", nlevels(data$squares));n11=data.frame(n1,levels(data$squares)) 
+            test3=lapply(cs1, fmm, dff=dff); n1=rep("treatments in", nlevels(data$squares));n11=data.frame(n1,levels(data$squares)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ") 
             names(test3)=n11 
             c2=rep(1:nlevels(data$treatments), nlevels(data$squares)) 
             cs2=split(mat, c2) 
-            test4=lapply(cs2, fm, dff=dff); n2=rep("squares in", nlevels(data$treatments));n22=data.frame(n2,levels(data$treatments)) 
+            test4=lapply(cs2, fmm, dff=dff); n2=rep("squares in", nlevels(data$treatments));n22=data.frame(n2,levels(data$treatments)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ") 
             names(test4)=n22 
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)} 
@@ -2142,8 +2179,8 @@ square<-levels(data$squares)
             mat=data.frame(interaction,adjusted.mean,standard.error) 
             rownames(mat)=NULL 
             dff=df.residual(m) 
-            test1=fm(maf1,dff) 
-            test2=fm(maf2,dff) 
+            test1=fmm(maf1,dff) 
+            test2=fmm(maf2,dff) 
 	    nrep1=length(data2[,1])/length(treatment) 
 	    nrep2=length(data2[,1])/length(square) 
 	    nrep3=length(data2[,1])/length(interaction) 
@@ -2158,12 +2195,12 @@ square<-levels(data$squares)
             rownames(mf2) = NULL 
             c1=rep(1:nlevels(data$squares), each=nlevels(data$treatments)) 
             cs1=split(mat, c1) 
-            test3=lapply(cs1, fm, dff=dff); n1=rep("treatments in", nlevels(data$squares));n11=data.frame(n1,levels(data$squares)) 
+            test3=lapply(cs1, fmm, dff=dff); n1=rep("treatments in", nlevels(data$squares));n11=data.frame(n1,levels(data$squares)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ") 
             names(test3)=n11 
             c2=rep(1:nlevels(data$treatments), nlevels(data$squares)) 
             cs2=split(mat, c2) 
-            test4=lapply(cs2, fm, dff=dff); n2=rep("squares in", nlevels(data$treatments));n22=data.frame(n2,levels(data$treatments)) 
+            test4=lapply(cs2, fmm, dff=dff); n2=rep("squares in", nlevels(data$treatments));n22=data.frame(n2,levels(data$treatments)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ") 
             names(test4)=n22 
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)} 
