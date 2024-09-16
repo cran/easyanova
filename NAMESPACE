@@ -1,18 +1,29 @@
-import(nlme)
-importFrom("graphics", abline, axis, boxplot, text)
-importFrom("stats", AIC, BIC, aggregate, anova, aov,
+  import(nlme)
+  importFrom("graphics", abline, axis, boxplot, text)
+  importFrom("stats", AIC, BIC, aggregate, anova, aov,
            bartlett.test, coef, contr.sum, deviance,
            df.residual, fitted, lm, median, na.omit,
            pchisq, pnorm, pt, ptukey, qchisq, qqline,
            qqnorm, resid, shapiro.test, terms, vcov, drop1)
-importFrom("utils", combn)
-importFrom("stats", "na.exclude", "sigma", "quantile", "sd")
+  importFrom("utils", combn)
+  importFrom("stats", "na.exclude", "sigma", "quantile", "sd")
+  importFrom("grDevices", "dev.off", "pdf")
+  importFrom("graphics", "arrows", "barplot", "par")
+  importFrom("stats", "qt", "qtukey")
+  importFrom("graphics", "stripchart")
+  importFrom("graphics", "segments")
+
 export("ea1")
 export("ea2")
 export("ec")
-
-
-
+export("means.plot")
+export("box.plot")
+export("means.plotfat")
+export("m.plot")
+export("ic.plot")
+export("ic")
+export("p.plot")
+export("tab")
 
 
 

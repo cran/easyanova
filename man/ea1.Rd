@@ -150,62 +150,62 @@ names(results[1][[1]])
 
 # analysis with a covariate
 # Kaps and Lamberson (2009)
-# data(data10)
+data(data10)
 
 # analysis in completely randomized design
-# r6<-ea1(data10[-3], design=5)
+r6<-ea1(data10[-3], design=5)
 
-# r6
+r6
 
 
 # incomplete blocks type I and II
 # Pimentel Gomes and Garcia (2002)
-# data(data11)
-# data(data12)
+data(data11)
+data(data12)
 
-#r7<-ea1(data11,design=7)
-#r8<-ea1(data12,design=7)
+r7<-ea1(data11,design=7)
+r8<-ea1(data12,design=7)
 
-#r7;r8
+r7;r8
 
 
 # incomplete blocks type III or augmented blocks 
 # Cruz and Carneiro (2006)
-# data(data13)
+data(data13)
 
-#r9<-ea1(data13, design=8)
-#r9
+r9<-ea1(data13, design=8)
+r9
 
 
 
 # incomplete blocks type III in animal experiments
 # Sampaio (2010)
-# data(data14)
+data(data14)
 
-# r10<-ea1(data14, design=9)
-# r10
+r10<-ea1(data14, design=9)
+r10
 
 # lattice 
 # Pimentel Gomes and Garcia (2002)
-# data(data15)
+data(data15)
 
-#r11<-ea1(data15, design=10) # intra-block analysis 
-#r12<-ea1(data15, design=11) # inter-block analysis
+r11<-ea1(data15, design=10) # intra-block analysis 
+r12<-ea1(data15, design=11) # inter-block analysis
 
-#r11
-#r12
+r11
+r12
 
 # switchback design
 # Sampaio (2010)
-# data(data16)
-# r13<-ea1(data16, design=12)
-# r13
+data(data16)
+r13<-ea1(data16, design=12)
+r13
 
 # switchback design in blocks
 # Sanders and Gaynor (1987)
-# data(data17)
-# r14<-ea1(data17, design=13)
-# r14
+data(data17)
+r14<-ea1(data17, design=13)
+r14
 
 #Kruskal-Wallis Rank Sum Test
 r15<-ea1(data1, design=14)
@@ -214,6 +214,50 @@ r15
 #Friedman Rank Sum Test
 r16<-ea1(data2, design=15)
 r16
+
+
+# Graeco-Latin Square
+#latin letters
+treatment=c("A","B","C","D","E","B","C","D","E","A","C",
+"D","E","A","B","D","E","A","B","C","E","A","B","C","D")
+##blocked factors
+#greek letters 
+block=c(1,2,3,4,5,3,4,5,1,2,5,1,2,3,4,2,3,4,5,1,4,5,1,2,3)
+# rowns
+rows=rep(1:5,5)
+#coluns
+columns=rep(1:5, each=5)
+#variable 
+response=c(-1,-8,-7,1,-3,-5,-1,13,6,5,-6,5,1,1,-5,-1,2,2,-2,4,-1,11,-4,-3,6)
+# table
+data=data.frame(treatment, block, rows, columns, response)
+r16=ea1(data, design=16)
+r16
+
+### Repetitions of Graeco-Latin Square
+#latin letters
+treatment=c("A","B","C","D","E","B","C","D","E",
+"A","C","D","E","A","B","D","E","A","B","C","E","A","B","C","D",
+"A","B","C","D","E","B","C","D","E","A","C","D",
+"E","A","B","D","E","A","B","C","E","A","B","C","D")
+#squares
+squares=rep(1:2,25)
+##blocked factors
+#greek letters 
+block=c(1,2,3,4,5,3,4,5,1,2,5,1,2,3,4,2,3,4,5,1,4,5,1,2,3,
+1,2,3,4,5,3,4,5,1,2,5,1,2,3,4,2,3,4,5,1,4,5,1,2,3)
+# rowns
+rows=c(rep(1:5,5),rep(1:5,5))
+#coluns
+columns=c(rep(1:5, each=5),rep(1:5, each=5))
+#variable 
+response=c(-1,-8,-7,1,-3,-5,-1,13,6,5,-6,5,1,1,-5,-1,2,2,-2,4,-1,11,-4,-3,6,
+-2,-9,-8,1,-2,-5,-1,9,6,5,-5,2,3,1,-7,-1,2,4,-1,2,-2,15,-5,-1,7)
+
+# table
+data=data.frame(treatment, squares, block, rows, columns, response)
+r17=ea1(data, design=17)
+r17
 
 
 }

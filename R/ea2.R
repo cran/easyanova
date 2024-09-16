@@ -453,9 +453,25 @@ sds=sapply(1:length(s), f); sds=round(sds,4)
 return(sds)
 }
 
+    fsd11=function(data)
+{
+s=split(data,data$plot)
+f=function(x){sd(s[[x]]$response, na.rm=TRUE)}
+sds=sapply(1:length(s), f); sds=round(sds,4)
+return(sds)
+}
+ 
+
 fsd2=function(data)
 {
 s=split(data,data$factor_2)
+f=function(x){sd(s[[x]]$response, na.rm=TRUE)}
+sds=sapply(1:length(s), f); sds=round(sds,4)
+return(sds)
+}
+fsd22=function(data)
+{
+s=split(data,data$split.plot)
 f=function(x){sd(s[[x]]$response, na.rm=TRUE)}
 sds=sapply(1:length(s), f); sds=round(sds,4)
 return(sds)
@@ -812,9 +828,10 @@ nam=list("t","t.adjust.holm", "t.adjust.hochberg", "t.adjust.hommel", "t.adjust.
             b<-anova(m, type="marginal")[-1,]
             m1<-lme(response~-1+ treatments, random=~1|subject, data=data, na.action=na.omit, contrasts=list(treatments=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
             am<-fixef(m1)[1:nlevels(data$treatments)]
-            c<-data.frame(levels(treatments), round(am,4),
+            sd3=fsd3(data)
+            c<-data.frame(levels(treatments), round(am,4),sd=sd3,
                           round(sderrs(m1)[1:nlevels(data$treatments)],4))
-            colnames(c)<-c("plot*split.plot","adjusted.means", "standard.error")
+            colnames(c)<-c("plot*split.plot","adjusted.means", "sd","sem")
             rownames(c)<-NULL
             df1<- anova(m) $"denDF"[2]
             df2<- anova(m) $"denDF"[1]
@@ -840,57 +857,94 @@ vara=anova(mal)[[2,3]]
 varb=m$sigma^2
 J=nlevels(data$split.plot)-1
 df1a=((vara+(J*varb))^2)/( ((vara^2)/df1)+(((J*varb)^2)/df2))
+qmrajust=(vara+J*varb)/(J+1)
+sd1=fsd11(data)
+sd2=fsd22(data)
 
-            colnames(a11)<-c("plot","adjusted.mean", "standard.error")
+            colnames(a11)<-c("plot","adjusted.mean", "sem")
             rownames(a11)<-NULL
-            colnames(a22)<-c("split.plot","adjusted.mean", "standard.error")
+            colnames(a22)<-c("split.plot","adjusted.mean", "sem")
             rownames(a22)<-NULL
-	   colnames(a222)<-c("split.plot","adjusted.mean", "standard.error")
+	   colnames(a222)<-c("split.plot","adjusted.mean", "sem")
            rownames(a222)<-NULL
             res=fr2(m,data)
-            test1=fmm(a11,df1)
-            test2=fmm(a222,df2)
-            groups1=ft(test1, alpha); a11=a11[order(a11[,2], decreasing=TRUE),]
-            mf1=data.frame(a11,groups1);rownames(mf1) = NULL
-            groups2=ft(test2, alpha); a22=a22[order(a22[,2], decreasing=TRUE),]
-            mf2=data.frame(a22,groups2);rownames(mf2) = NULL
+            test1=fm(a11,df1) # usar fm e not fmm
+                    test2=fm(a222,df2)
+                   
+   ##### ###SK              
+                   data2=na.exclude(data)
+           nrep1=length(data2[,1])/nlevels(data2$plot)
+	    nrep2=length(data2[,1])/nlevels(data2$split.plot)
+	    nrep3=length(data2[,1])/nlevels(data2$treatments) 
+	    means1=as.numeric(a11[,2])
+	    means2=as.numeric(a22[,2])
+                	    scott_knott=sk(means1, df1, vara, nrep1, alpha)
+              	       
+            groups1=ft(test1, alpha); sem=a11[,3];a11=data.frame(a11[,-3],sd=sd1,sem);a11=a11[order(a11[,2], decreasing=TRUE),]
+            mf1=data.frame(a11,groups1,scott_knott);rownames(mf1) = NULL
+            
+                            	    scott_knott=sk(means2, df2, varb, nrep2, alpha)
+            
+            groups2=ft(test2, alpha); a22=data.frame(a22[,-3],sd=sd2,sem=a22[,3]);a22=a22[order(a22[,2], decreasing=TRUE),]
+            mf2=data.frame(a22,groups2,scott_knott);rownames(mf2) = NULL
+                    
+                 ###sk
+            
+            
             c1=rep(1:nlevels(data$split.plot), each=nlevels(data$plot))
-            cs1=split(c, c1)
-           #### trocados os dfs  
- test3=lapply(cs1, fmm, dff=df1a); n1=rep("plot in", nlevels(data$split.plot));n11=data.frame(n1,levels(data$split.plot)) 
+            cs1=split(c, c1)     
+             
+            
+            #### trocados os dfs  
+ test3=lapply(cs1, fm, dff=df1a); n1=rep("plot in", nlevels(data$split.plot));n11=data.frame(n1,levels(data$split.plot)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test3)=n11
             c2=rep(1:nlevels(data$plot), nlevels(data$split.plot))
             cs2=split(c, c2)
-###############
+
 msa2=sqrt((m$sigma^2)/(nrow(data)/nlevels(data$treatments)))
 msa2=rep(msa2,nlevels(data$treatments))    
-c222<-data.frame(levels(treatments), round(am,4), round(msa2,4))
-colnames(c222)<-c("plot*split.plot","adjusted.mean", "standard.error")
+c222<-data.frame(levels(treatments), round(am,4), sd3,round(msa2,4))
+colnames(c222)<-c("plot*split.plot","adjusted.mean", "sd","sem")
 rownames(c222)<-NULL
  cs222=split(c222, c2)
- 
-#######################
-            test4=lapply(cs222, fmm, dff=df2); n2=rep("split.plot in", nlevels(data$plot));n22=data.frame(n2,levels(data$plot)) 
+
+            test4=lapply(cs222, fm, dff=df2); n2=rep("split.plot in", nlevels(data$plot));n22=data.frame(n2,levels(data$plot)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test4)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
             groups3=lapply(test3, ft, alpha)
             mft1=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft1[[x]],groups3[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$split.plot)))
+            i=1:length(mft1)
+	    ft1=function(i){a=mft1[[i]][,2];names(a)=mft1[[i]][,1];return(a)}
+	    lap1=lapply(i, ft1)
+            
+            scott_knott=lapply(lap1, sk, df1=df2, QME=vara, nrep=nrep3, alpha=alpha)
+          	    names(scott_knott)=rep("scott_knott",length(scott_knott))           
+            dd<-function(x){l=data.frame(mft1[[x]],groups3[[x]],scott_knott=scott_knott[x]); return(l)}; nf1=as.list(c(1:nlevels(data$split.plot)))
             mft1=lapply(nf1,dd)
-            names(mft1)=n11
+            names(mft1)=n11 
             groups4=lapply(test4, ft, alpha)
             mft2=lapply(cs2,csf);
-            ddd<-function(x){l=data.frame(mft2[[x]],groups4[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$plot)))
+            i=1:length(mft2)
+	    ft1=function(i){a=mft2[[i]][,2];names(a)=mft2[[i]][,1];return(a)}
+	    lap1=lapply(i, ft1)
+	    scott_knott=lapply(lap1, sk, df1=df1, QME=varb, nrep=nrep3, alpha=alpha)
+	    names(scott_knott)=rep("scott_knott",length(scott_knott))
+	     ddd<-function(x){l=data.frame(mft2[[x]],groups4[[x]],scott_knott=scott_knott[x]); return(l)};
+            nf2=as.list(c(1:nlevels(data$plot)))
             mft2=lapply(nf2,ddd)
             names(mft2)=n22    
+          
+      ####################
+      #SK
+            
 		cva=round(sqrt(vara)*100/mean(data$response, na.rm = TRUE),4); vara=round(vara,4)
 		cvb=round(sqrt(varb)*100/mean(data$response, na.rm = TRUE),4);varb=round(varb,4)
 
-ress=rbind(res[[1]],"Mean Square of Error a"=vara, "Mean Square of Error b"=varb, "Coefficient of Variation a"=cva,"Coefficient of Variation b"=cvb)
+ress=rbind(res[[1]],"mean square of error a"=vara, "mean square of error b"=varb, "combined mean square"=qmrajust,"df (Satterthwaite)"=df1a, "coefficient of variation a"=cva,"coefficient of variation b"=cvb)
 res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
-
+b=as.data.frame(b)
             l=list(b,mf1,test1,mf2,test2,mft1,test3,mft2,test4, res)
             names(l)=c("Marginal anova (Type III Sum of Squares)","Adjusted means (plot)", "Multiple comparison test (plot)","Adjusted means (split.plot)", "Multiple comparison test (split.plot)", "Adjusted means (plot in levels of split.plot)", "Multiple comparison test (plot in levels of split.plot)", "Adjusted means (split.plot in levels of plot)", "Multiple comparison test (split.plot in levels of plot)","Residual analysis")
 		pres(m)  
@@ -924,8 +978,10 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             b<-anova(m, type="marginal")[-1,]
             m1<-lme(response~-1+ treatments+block, random=~1|subject, data=data, na.action=na.omit, contrasts=list(treatments=contr.sum, block=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
             am<-fixef(m1)[1:nlevels(data$ treatments)]
-            c<-data.frame(levels(treatments), round(am,4), round(sderrs(m1)[1:nlevels(data$ treatments)],4))
-            colnames(c)<-c("plot*split.plot","adjusted.mean", "standard.error")
+            sd3=fsd3(data)
+            c<-data.frame(levels(treatments), round(am,4),sd=sd3,
+                          round(sderrs(m1)[1:nlevels(data$treatments)],4))
+            colnames(c)<-c("plot*split.plot","adjusted.means", "sd","sem")                          
             rownames(c)<-NULL
             df1<- anova(m) $"denDF"[2]
             df2<- anova(m) $"denDF"[1]
@@ -950,63 +1006,99 @@ varb=m$sigma^2
 
 J=nlevels(data$split.plot)-1
 df1a=((vara+(J*varb))^2)/( ((vara^2)/df1)+(((J*varb)^2)/df2))
+qmrajust=(vara+J*varb)/(J+1)
+sd1=fsd11(data)
+sd2=fsd22(data)
 
-
-            colnames(a11)<-c("plot","adjusted.mean", "standard.error")
+            colnames(a11)<-c("plot","adjusted.mean", "sem")
             rownames(a11)<-NULL
-            colnames(a22)<-c("split.plot","adjusted.mean", "standard.error")
+            colnames(a22)<-c("split.plot","adjusted.mean", "sem")
             rownames(a22)<-NULL
-	   colnames(a222)<-c("split.plot","adjusted.mean", "standard.error")
-           rownames(a222)<-NULL
+	   colnames(a222)<-c("split.plot","adjusted.mean", "sem")
+                       rownames(a222)<-NULL
             res=fr2(m,data)
-            test1=fmm(a11,df1)
-            test2=fmm(a222,df2)
-            groups1=ft(test1, alpha); a11=a11[order(a11[,2], decreasing=TRUE),]
-            mf1=data.frame(a11,groups1);rownames(mf1) = NULL
-            groups2=ft(test2, alpha); a22=a22[order(a22[,2], decreasing=TRUE),]
-            mf2=data.frame(a22,groups2);rownames(mf2) = NULL
+            test1=fm(a11,df1)
+            test2=fm(a222,df2)
+           ##### ###SK              
+                   data2=na.exclude(data)
+           nrep1=length(data2[,1])/nlevels(data2$plot)
+	    nrep2=length(data2[,1])/nlevels(data2$split.plot)
+	    nrep3=length(data2[,1])/nlevels(data2$treatments) 
+	    means1=as.numeric(a11[,2])
+	    means2=as.numeric(a22[,2])
+                	    scott_knott=sk(means1, df1, vara, nrep1, alpha)
+              	       
+            groups1=ft(test1, alpha); sem=a11[,3];a11=data.frame(a11[,-3],sd=sd1,sem);a11=a11[order(a11[,2], decreasing=TRUE),]
+            mf1=data.frame(a11,groups1,scott_knott);rownames(mf1) = NULL
+            
+                            	    scott_knott=sk(means2, df2, varb, nrep2, alpha)
+            
+            groups2=ft(test2, alpha); a22=data.frame(a22[,-3],sd=sd2,sem=a22[,3]);a22=a22[order(a22[,2], decreasing=TRUE),]
+            mf2=data.frame(a22,groups2,scott_knott);rownames(mf2) = NULL
+                    
+                 ###sk
+            
+            
             c1=rep(1:nlevels(data$split.plot), each=nlevels(data$plot))
-            cs1=split(c, c1)
-           #### trocados os dfs  
- test3=lapply(cs1, fmm, dff=df1a); n1=rep("plot in", nlevels(data$split.plot));n11=data.frame(n1,levels(data$split.plot)) 
+            cs1=split(c, c1)     
+             
+            
+            #### trocados os dfs  
+ test3=lapply(cs1, fm, dff=df1a); n1=rep("plot in", nlevels(data$split.plot));n11=data.frame(n1,levels(data$split.plot)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test3)=n11
             c2=rep(1:nlevels(data$plot), nlevels(data$split.plot))
             cs2=split(c, c2)
-###############
+
 msa2=sqrt((m$sigma^2)/(nrow(data)/nlevels(data$treatments)))
 msa2=rep(msa2,nlevels(data$treatments))    
-c222<-data.frame(levels(treatments), round(am,4), round(msa2,4))
-colnames(c222)<-c("plot*split.plot","adjusted.mean", "standard.error")
+c222<-data.frame(levels(treatments), round(am,4), sd3,round(msa2,4))
+colnames(c222)<-c("plot*split.plot","adjusted.mean", "sd","sem")
 rownames(c222)<-NULL
  cs222=split(c222, c2)
- 
-#######################
-            test4=lapply(cs222, fmm, dff=df2); n2=rep("split.plot in", nlevels(data$plot));n22=data.frame(n2,levels(data$plot)) 
+
+            test4=lapply(cs222, fm, dff=df2); n2=rep("split.plot in", nlevels(data$plot));n22=data.frame(n2,levels(data$plot)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test4)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
             groups3=lapply(test3, ft, alpha)
             mft1=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft1[[x]],groups3[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$split.plot)))
+            i=1:length(mft1)
+	    ft1=function(i){a=mft1[[i]][,2];names(a)=mft1[[i]][,1];return(a)}
+	    lap1=lapply(i, ft1)
+            
+            scott_knott=lapply(lap1, sk, df1=df1a, QME=vara, nrep=nrep3, alpha=alpha)
+          	    names(scott_knott)=rep("scott_knott",length(scott_knott))           
+            dd<-function(x){l=data.frame(mft1[[x]],groups3[[x]],scott_knott=scott_knott[x]); return(l)}; nf1=as.list(c(1:nlevels(data$split.plot)))
             mft1=lapply(nf1,dd)
-            names(mft1)=n11
+            names(mft1)=n11 
             groups4=lapply(test4, ft, alpha)
             mft2=lapply(cs2,csf);
-            ddd<-function(x){l=data.frame(mft2[[x]],groups4[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$plot)))
+            i=1:length(mft2)
+	    ft1=function(i){a=mft2[[i]][,2];names(a)=mft2[[i]][,1];return(a)}
+	    lap1=lapply(i, ft1)
+	    scott_knott=lapply(lap1, sk, df1=df2, QME=varb, nrep=nrep3, alpha=alpha)
+	    names(scott_knott)=rep("scott_knott",length(scott_knott))
+	     ddd<-function(x){l=data.frame(mft2[[x]],groups4[[x]],scott_knott=scott_knott[x]); return(l)};
+            nf2=as.list(c(1:nlevels(data$plot)))
             mft2=lapply(nf2,ddd)
             names(mft2)=n22    
+          
+      ####################
+      #SK
+             
 		cva=round(sqrt(vara)*100/mean(data$response, na.rm = TRUE),4); vara=round(vara,4)
 		cvb=round(sqrt(varb)*100/mean(data$response, na.rm = TRUE),4);varb=round(varb,4)
 
-ress=rbind(res[[1]],"Mean Square of Error a"=vara, "Mean Square of Error b"=varb, "Coefficient of Variation a"=cva,"Coefficient of Variation b"=cvb)
+ress=rbind(res[[1]],"mean square of error a"=vara, "mean square of error b"=varb, "combined mean square"=qmrajust,"df (Satterthwaite)"=df1a, "coefficient of variation a"=cva,"coefficient of variation b"=cvb)
 res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
-
+b=as.data.frame(b)
             l=list(b,mf1,test1,mf2,test2,mft1,test3,mft2,test4, res)
             names(l)=c("Marginal anova (Type III Sum of Squares)","Adjusted means (plot)", "Multiple comparison test (plot)","Adjusted means (split.plot)", "Multiple comparison test (split.plot)", "Adjusted means (plot in levels of split.plot)", "Multiple comparison test (plot in levels of split.plot)", "Adjusted means (split.plot in levels of plot)", "Multiple comparison test (split.plot in levels of plot)","Residual analysis")
 		pres(m)  
             return(l)
         }
+        
         
         f6<-function(data, cov){ 
             gg<-cov
@@ -1033,9 +1125,11 @@ res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
             b<-anova(m, type="marginal")[-1,]
             m1<-lme(response~-1+ treatments+row+column, random=~1|subject, data=data, na.action=na.omit, contrasts=list(treatments=contr.sum, column=contr.sum, row=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000,  opt="optim"))
             am<-fixef(m1)[1:nlevels(data$treatments)]
-            c<-data.frame(levels(treatments), round(am,4), round(sderrs(m1)[1:nlevels(data$ treatments)],4))
-            colnames(c)<-c("plot*split.plot","adjusted.mean", "standard.error")
-            rownames(c)<-NULL
+            sd3=fsd3(data)
+            c<-data.frame(levels(treatments), round(am,4),sd=sd3,
+                          round(sderrs(m1)[1:nlevels(data$treatments)],4))
+            colnames(c)<-c("plot*split.plot","adjusted.means", "sd","sem")                      
+                        rownames(c)<-NULL
             df1<- anova(m) $"denDF"[2]
             df2<- anova(m) $"denDF"[1]
             mm1<-lme(response~-1+plot*split.plot+row+column, random=~1|subject, data=data, na.action=na.omit, contrasts=list(plot=contr.sum, split.plot=contr.sum, column=contr.sum, row=contr.sum), correlation=cor, weights=var, control=lmeControl(maxIter =6000, msMaxIter=6000, niterEM=2000, opt="optim"))
@@ -1064,57 +1158,95 @@ vara=anova(mal)[[4,3]]
 varb=m$sigma^2
 J=nlevels(data$split.plot)-1
 df1a=((vara+(J*varb))^2)/( ((vara^2)/df1)+(((J*varb)^2)/df2))
+qmrajust=(vara+J*varb)/(J+1)
+sd1=fsd11(data)
+sd2=fsd22(data)
 
-            colnames(a11)<-c("plot","adjusted.mean", "standard.error")
+            colnames(a11)<-c("plot","adjusted.mean", "sem")
             rownames(a11)<-NULL
-            colnames(a22)<-c("split.plot","adjusted.mean", "standard.error")
+            colnames(a22)<-c("split.plot","adjusted.mean", "sem")
             rownames(a22)<-NULL
-	   colnames(a222)<-c("split.plot","adjusted.mean", "standard.error")
-           rownames(a222)<-NULL
+	   colnames(a222)<-c("split.plot","adjusted.mean", "sem")
+                       rownames(a222)<-NULL
+
             res=fr2(m,data)
-            test1=fmm(a11,df1)
-            test2=fmm(a222,df2)
-            groups1=ft(test1, alpha); a11=a11[order(a11[,2], decreasing=TRUE),]
-            mf1=data.frame(a11,groups1);rownames(mf1) = NULL
-            groups2=ft(test2, alpha); a22=a22[order(a22[,2], decreasing=TRUE),]
-            mf2=data.frame(a22,groups2);rownames(mf2) = NULL
+            test1=fm(a11,df1)
+            test2=fm(a222,df2)
+           
+           ##### ###SK              
+                   data2=na.exclude(data)
+           nrep1=length(data2[,1])/nlevels(data2$plot)
+	    nrep2=length(data2[,1])/nlevels(data2$split.plot)
+	    nrep3=length(data2[,1])/nlevels(data2$treatments) 
+	    means1=as.numeric(a11[,2])
+	    means2=as.numeric(a22[,2])
+                	    scott_knott=sk(means1, df1, vara, nrep1, alpha)
+              	       
+            groups1=ft(test1, alpha); sem=a11[,3];a11=data.frame(a11[,-3],sd=sd1,sem);a11=a11[order(a11[,2], decreasing=TRUE),]
+            mf1=data.frame(a11,groups1,scott_knott);rownames(mf1) = NULL
+            
+                            	    scott_knott=sk(means2, df2, varb, nrep2, alpha)
+            
+            groups2=ft(test2, alpha); a22=data.frame(a22[,-3],sd=sd2,sem=a22[,3]);a22=a22[order(a22[,2], decreasing=TRUE),]
+            mf2=data.frame(a22,groups2,scott_knott);rownames(mf2) = NULL
+                    
+                 ###sk
+            
+            
             c1=rep(1:nlevels(data$split.plot), each=nlevels(data$plot))
-            cs1=split(c, c1)
-           #### trocados os dfs  
- test3=lapply(cs1, fmm, dff=df1a); n1=rep("plot in", nlevels(data$split.plot));n11=data.frame(n1,levels(data$split.plot)) 
+            cs1=split(c, c1)     
+             
+            
+            #### trocados os dfs  
+ test3=lapply(cs1, fm, dff=df1a); n1=rep("plot in", nlevels(data$split.plot));n11=data.frame(n1,levels(data$split.plot)) 
             n11 <- apply(t(n11), 2, paste, collapse = "  ")
             names(test3)=n11
             c2=rep(1:nlevels(data$plot), nlevels(data$split.plot))
             cs2=split(c, c2)
-###############
+
 msa2=sqrt((m$sigma^2)/(nrow(data)/nlevels(data$treatments)))
 msa2=rep(msa2,nlevels(data$treatments))    
-c222<-data.frame(levels(treatments), round(am,4), round(msa2,4))
-colnames(c222)<-c("plot*split.plot","adjusted.mean", "standard.error")
+c222<-data.frame(levels(treatments), round(am,4), sd3,round(msa2,4))
+colnames(c222)<-c("plot*split.plot","adjusted.mean", "sd","sem")
 rownames(c222)<-NULL
  cs222=split(c222, c2)
- 
-#######################
-            test4=lapply(cs222, fmm, dff=df2); n2=rep("split.plot in", nlevels(data$plot));n22=data.frame(n2,levels(data$plot)) 
+
+            test4=lapply(cs222, fm, dff=df2); n2=rep("split.plot in", nlevels(data$plot));n22=data.frame(n2,levels(data$plot)) 
             n22 <- apply(t(n22), 2, paste, collapse = "  ")
             names(test4)=n22
             csf=function(x){a=x[order(x[,2], decreasing=TRUE),];return(a)}
             groups3=lapply(test3, ft, alpha)
             mft1=lapply(cs1,csf);
-            dd<-function(x){l=data.frame(mft1[[x]],groups3[[x]]); return(l)}; nf1=as.list(c(1:nlevels(data$split.plot)))
+            i=1:length(mft1)
+	    ft1=function(i){a=mft1[[i]][,2];names(a)=mft1[[i]][,1];return(a)}
+	    lap1=lapply(i, ft1)
+            
+            scott_knott=lapply(lap1, sk, df1=df2, QME=vara, nrep=nrep3, alpha=alpha)
+          	    names(scott_knott)=rep("scott_knott",length(scott_knott))           
+            dd<-function(x){l=data.frame(mft1[[x]],groups3[[x]],scott_knott=scott_knott[x]); return(l)}; nf1=as.list(c(1:nlevels(data$split.plot)))
             mft1=lapply(nf1,dd)
-            names(mft1)=n11
+            names(mft1)=n11 
             groups4=lapply(test4, ft, alpha)
             mft2=lapply(cs2,csf);
-            ddd<-function(x){l=data.frame(mft2[[x]],groups4[[x]]); return(l)}; nf2=as.list(c(1:nlevels(data$plot)))
+            i=1:length(mft2)
+	    ft1=function(i){a=mft2[[i]][,2];names(a)=mft2[[i]][,1];return(a)}
+	    lap1=lapply(i, ft1)
+	    scott_knott=lapply(lap1, sk, df1=df1, QME=varb, nrep=nrep3, alpha=alpha)
+	    names(scott_knott)=rep("scott_knott",length(scott_knott))
+	     ddd<-function(x){l=data.frame(mft2[[x]],groups4[[x]],scott_knott=scott_knott[x]); return(l)};
+            nf2=as.list(c(1:nlevels(data$plot)))
             mft2=lapply(nf2,ddd)
             names(mft2)=n22    
+          
+      ####################
+      #SK
+             
 		cva=round(sqrt(vara)*100/mean(data$response, na.rm = TRUE),4); vara=round(vara,4)
 		cvb=round(sqrt(varb)*100/mean(data$response, na.rm = TRUE),4);varb=round(varb,4)
 
-ress=rbind(res[[1]],"Mean Square of Error a"=vara, "Mean Square of Error b"=varb, "Coefficient of Variation a"=cva,"Coefficient of Variation b"=cvb)
+ress=rbind(res[[1]],"mean square of error a"=vara, "mean square of error b"=varb, "combined mean square"=qmrajust,"df (Satterthwaite)"=df1a, "coefficient of variation a"=cva,"coefficient of variation b"=cvb)
 res=list("values"=ress,"residuals"=res[[2]],"standardized residuals"=res[[3]])
-
+b=as.data.frame(b)
             l=list(b,mf1,test1,mf2,test2,mft1,test3,mft2,test4, res)
             names(l)=c("Marginal anova (Type III Sum of Squares)","Adjusted means (plot)", "Multiple comparison test (plot)","Adjusted means (split.plot)", "Multiple comparison test (split.plot)", "Adjusted means (plot in levels of split.plot)", "Multiple comparison test (plot in levels of split.plot)", "Adjusted means (split.plot in levels of plot)", "Multiple comparison test (split.plot in levels of plot)","Residual analysis")
 		pres(m)  

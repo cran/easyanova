@@ -8,6 +8,7 @@ ea1<-function (data, design=1, alpha=0.05, list=FALSE, p.adjust=1, plot=2)
 {
     list <- if(list) 2 else 1  # *not* ugly slow  ifelse() !
     
+    
     sk=function(means, df1, QME, nrep, alpha=0.05){
         sk1=function(means, df1, QME, nrep, alpha=alpha) {
             means=sort(means,decreasing=TRUE)
@@ -413,6 +414,22 @@ sds=sapply(1:length(s), f); sds=round(sds,4)
 return(sds)
 }
 
+fmax=function(data)
+{
+s=split(data,data$treatments)
+f=function(x){max(s[[x]]$response, na.rm=TRUE)}
+sds=sapply(1:length(s), f); sds=round(sds,4)
+return(sds)
+}
+
+fmin=function(data)
+{
+s=split(data,data$treatments)
+f=function(x){min(s[[x]]$response, na.rm=TRUE)}
+sds=sapply(1:length(s), f); sds=round(sds,4)
+return(sds)
+}
+
   
     fquantil=function(data)
 {
@@ -435,8 +452,10 @@ return(sds)
         mean <- round(coef(m1),4)
         sem <- round(sderrs(m1),4)
         sd=fsd(data)
+        max=fmax(data)
+        min=fmin(data)
         treatment <- levels(data$treatments)
-        ma = data.frame(treatment, mean, sd, sem)
+        ma = data.frame(treatment, mean, sd, sem, min,max)
         rownames(ma) = NULL;dff=df.residual(m)
         test=fm(ma,dff)
         groups=ft(test, alpha); ma=ma[order(ma[,2], decreasing=TRUE),]
@@ -470,9 +489,11 @@ return(sds)
         adjusted.mean <- round(coef(m1)[c(1:nlevels(data$treatments))],4)
         Standart.Error <- round(sderrs(m1),4)
         sd=fsd(data)
-        sem <- Standart.Error[1:nlevels(data$treatments)]
+         sem <- Standart.Error[1:nlevels(data$treatments)]
+        max=fmax(data)
+        min=fmin(data)
         treatment <- levels(data$treatments)
-        ma = data.frame(treatment, adjusted.mean, sd, sem)
+        ma = data.frame(treatment, adjusted.mean, sd, sem, min,max)
         rownames(ma) = NULL;dff=df.residual(m)
         test=fm(ma,dff)
         groups=ft(test, alpha); ma=ma[order(ma[,2], decreasing=TRUE),]
@@ -504,12 +525,14 @@ return(sds)
         a2 <- drop1(m,.~.,test="F")
         a3 <- a2
         a3<-fa2(a3,m)
-        adjusted.mean <- round(coef(m1)[c(1:nlevels(data$treatments))],4)
+                       adjusted.mean <- round(coef(m1)[c(1:nlevels(data$treatments))],4)
         Standart.Error <- round(sderrs(m1),4)
         sem <- Standart.Error[1:nlevels(data$treatments)]
                 sd=fsd(data)
+        max=fmax(data)
+        min=fmin(data)
         treatment <- levels(data$treatments)
-        ma = data.frame(treatment, adjusted.mean, sd, sem)
+        ma = data.frame(treatment, adjusted.mean, sd, sem, min,max)
         rownames(ma) = NULL;dff=df.residual(m)
         test=fm(ma,dff)
         groups=ft(test, alpha); ma=ma[order(ma[,2], decreasing=TRUE),]
@@ -541,12 +564,14 @@ return(sds)
         a <- anova(m)
         a<-fa1(a)
         data2 <- na.omit(data)
-        res=fr(m,data2)
+                     res=fr(m,data2)
         adjusted.mean <- round(coef(m1)[1:nlevels(data$treatments)],4)
        sem <- round(sderrs(m1)[1:nlevels(data$treatments)],4)
        sd=fsd(data)
+        max=fmax(data)
+        min=fmin(data)
         treatment <- levels(data$treatments)
-        ma = data.frame(treatment, adjusted.mean, sd,sem)
+        ma = data.frame(treatment, adjusted.mean, sd, sem, min,max)
         rownames(ma) = NULL;dff=df.residual(m)
         test=fm(ma,dff)
         groups=ft(test, alpha); ma=ma[order(ma[,2], decreasing=TRUE),]
@@ -569,23 +594,29 @@ return(sds)
         data<-data.frame(treatments=factor(data$treatments), covariate=as.numeric(data$covariate), response=data$response)
         m<-lm(response~ covariate+treatments,data=data, contrasts=list(treatments=contr.sum))
         m1<-lm(response~-1+treatments+covariate,data=data, contrasts=list(treatments=contr.sum))
+                data2<-na.omit(data)
+                m2<-lm(response~-1+covariate+treatments,data=data2, contrasts=list(treatments=contr.sum))
         a<-anova(m)
         a<-fa1(a)
-        data2<-na.omit(data)
-        res=fr(m,data2)
-        b1=coef(m)[[2]]
-        b1
-        ra=data$response-(b1*(data$covariate-mean(data$covariate)))
-        data=data.frame(data,ra)
-        m2=lm(ra~-1+treatments, data=data)
-        
-        adjusted.mean<-round(coef(m2)[c(1:nlevels(data$treatments))],4)
-        aaa=aggregate(.~treatments,data,FUN=length)
-        dff=df.residual(m)
-        sem<-round(sqrt((deviance(m)/dff)/aaa$ra),4)
+                     res=fr(m,data2)
+                
+        adjusted.mean<-((coef(m2)[1])*mean(data2$covariate))+coef(m2)[-1]
+         
+         mc2=lm(covariate~-1+treatments, data=data2, contrasts=list(treatments=contr.sum))
+         mc1=lm(covariate~treatments, data=data2, contrasts=list(treatments=contr.sum))
+         
+         qme=deviance(m2)/m2$df.residual
+ri=aggregate(.~data2$treatments,data2,FUN="length");ri=ri$response
+se=(((((coef(mc2)-mean(coef(mc2)))^2)/deviance(mc1)))+(1/ri))
+se=(se*qme)^0.5
+       
+        sem<-round(se,4)
+        dff=m$df.residual
         sd=fsd(data)
-        treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean,sd,sem)
+        max=fmax(data)
+        min=fmin(data)
+        treatment <- levels(data$treatments)
+        ma = data.frame(treatment, adjusted.mean, sd, sem, min,max)
         rownames(ma)=NULL
         test=fm(ma,dff)
         groups=ft(test, alpha); ma=ma[order(ma[,2], decreasing=TRUE),]
@@ -606,23 +637,29 @@ return(sds)
         data<-data.frame(treatments=factor(data$treatments), covariate=as.numeric(data$covariate), blocks=factor(data$blocks),response=data$response)
         m<-lm(response~ covariate+treatments+blocks,data=data, contrasts=list(treatments=contr.sum, blocks=contr.sum))
         m1<-lm(response~-1+treatments+covariate+blocks,data=data, contrasts=list(treatments=contr.sum, blocks=contr.sum))
+        data2<-na.omit(data)
+                m2<-lm(response~-1+covariate+treatments+blocks,data=data2, contrasts=list(treatments=contr.sum,blocks=contr.sum))
         a<-anova(m)
         a<-fa1(a)
-        data2<-na.omit(data)
-        res=fr(m,data2)
-        b1=coef(m)[[2]]
-        b1
-        ra=data$response-(b1*(data$covariate-mean(data$covariate)))
-        data=data.frame(data,ra)
-        m2=lm(ra~-1+treatments+blocks, data=data)
-        
-        adjusted.mean<-round(coef(m2)[c(1:nlevels(data$treatments))],4)
-        aaa=aggregate(.~treatments,data,FUN=length)
-        dff=df.residual(m)
-        sem<-round(sqrt((deviance(m)/dff)/aaa$ra),4)
+                        res=fr(m,data2)
+                
+        adjusted.mean<-(((coef(m2)[1])*mean(data2$covariate))+coef(m2)[-1])[1:nlevels(data$treatments)]
+         
+         mc2=lm(covariate~-1+treatments+blocks, data=data2, contrasts=list(treatments=contr.sum,blocks=contr.sum))
+         mc1=lm(covariate~treatments+blocks, data=data2, contrasts=list(treatments=contr.sum,blocks=contr.sum))
+         mck=coef(mc2)[1:nlevels(data$treatments)]
+         qme=deviance(m2)/m2$df.residual
+ri=aggregate(.~data2$treatments,data2,FUN="length");ri=ri$response
+se=(((((coef(mc2)[1:nlevels(data$treatments)]-mean(coef(mc2)[1:nlevels(data$treatments)]))^2)/deviance(mc1)))+(1/ri))
+se=(se*qme)^0.5
+       
+        sem<-round(se,4)
+        dff=m$df.residual
                 sd=fsd(data)
-        treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean,sd,sem)
+        max=fmax(data)
+        min=fmin(data)
+        treatment <- levels(data$treatments)
+        ma = data.frame(treatment, adjusted.mean, sd, sem, min,max)
         rownames(ma)=NULL
         test=fm(ma,dff)
         groups=ft(test, alpha); ma=ma[order(ma[,2], decreasing=TRUE),]
@@ -647,12 +684,14 @@ return(sds)
         a<-anova(m)
         a=fa1(a)
         data2<-na.omit(data)
-        res=fr(m,data2)
+                              res=fr(m,data2)
         adjusted.mean<-round(coef(m1)[c(1:nlevels(data$treatments))],4)
         sem<-round(sderrs(m1)[c(1:nlevels(data$treatments))],4)
         sd=fsd(data)
-        treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean,sd, sem)
+        max=fmax(data)
+        min=fmin(data)
+        treatment <- levels(data$treatments)
+        ma = data.frame(treatment, adjusted.mean, sd, sem, min,max)
         rownames(ma)=NULL
         dff=df.residual(m)
         test=fm(ma,dff)
@@ -677,14 +716,16 @@ return(sds)
         a<-anova(m)
         data2<-na.omit(data)
         a=fa1(a)
-        r=resid(m)
+                               r=resid(m)
         s=shapiro.test(r)
         cvf=cv(m)
         adjusted.mean<-round(coef(m1)[c(1:nlevels(data$treatments))],4)
         sem<-round(sderrs(m1)[c(1:nlevels(data$treatments))],4)
                 sd=fsd(data)
-        treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean,sd, sem)
+        max=fmax(data)
+        min=fmin(data)
+        treatment <- levels(data$treatments)
+        ma = data.frame(treatment, adjusted.mean, sd, sem, min,max)
         rownames(ma)=NULL
         dff=df.residual(m)
         test=fm(ma,dff)
@@ -708,13 +749,15 @@ return(sds)
         m1<-lm(response~-1+treatments+ subject+period, data=data, contrasts=list(treatments=contr.sum, subject=contr.sum, period=contr.sum))
         a<-anova(m)
         a=fa1(a)
-        data2<-na.omit(data)
+                               data2<-na.omit(data)
         res=fr(m,data2)
         adjusted.mean<-round(coef(m1)[c(1:nlevels(data$treatments))],4)
         sem<-round(sderrs(m1)[c(1:nlevels(data$treatments))],4)
                         sd=fsd(data)
-        treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean,sd, sem)
+        max=fmax(data)
+        min=fmin(data)
+        treatment <- levels(data$treatments)
+        ma = data.frame(treatment, adjusted.mean, sd, sem, min,max)
         rownames(ma)=NULL
         dff=df.residual(m)
         test=fm(ma,dff)
@@ -740,13 +783,15 @@ return(sds)
         a2 <- drop1(m,.~.,test="F")
         a3 <- a2
         a3<-fa2(a3,m)
-        data2<-na.omit(data)
+                                data2<-na.omit(data)
         res=fr(m,data2)
         adjusted.mean<-round(coef(m1)[c(1:nlevels(data$treatments))],4)
         sem<-round(sderrs(m1)[c(1:nlevels(data$treatments))],4)
                                 sd=fsd(data)
-        treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean,sd,sem)
+        max=fmax(data)
+        min=fmin(data)
+        treatment <- levels(data$treatments)
+        ma = data.frame(treatment, adjusted.mean, sd, sem, min,max)
         rownames(ma)=NULL
         dff=df.residual(m)
         test=fm(ma,dff)
@@ -779,15 +824,17 @@ return(sds)
         m1<-lme(response~-1+treatments+repetition, random=~1|repetition/blocks,data=data, contrasts=list(repetition=contr.sum, blocks=contr.sum, treatments=contr.sum), na.action=na.omit)
         a3<-anova(m, type="marginal")
         a3<-a3[-1,]
-        data2<-na.omit(data)
+                               data2<-na.omit(data)
         r=resid(m)
         s=shapiro.test(r)
         b1=bartlett.test(r~treatments, data=data2)
         adjusted.mean<-round(fixef(m1)[c(1:nlevels(data$treatments))],4)
         sem<-round(sderrs(m1)[c(1:nlevels(data$treatments))],4)
                                         sd=fsd(data)
-        treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean,sd,sem)
+        max=fmax(data)
+        min=fmin(data)
+        treatment <- levels(data$treatments)
+        ma = data.frame(treatment, adjusted.mean, sd, sem, min,max)
         rownames(ma)=NULL
         dff=a3[[2]][[2]]
         test=fm(ma,dff)
@@ -833,8 +880,10 @@ return(sds)
         Standart.Error= Standart.Error[-c(1:(nlevels(data$animal)+nlevels(data$period)-1))]
         sem<-c(as.numeric(Standart.Error), as.numeric(Standart.Error)[1])*sqrt(1.5)
                                                 sd=fsd(data)
-        treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean=round(adjusted.mean,4),sd,sem)
+        max=fmax(data)
+        min=fmin(data)
+        treatment <- levels(data$treatments)
+        ma = data.frame(treatment,adjusted.mean=round(adjusted.mean,4), sd, sem, min,max)
         rownames(ma)=NULL; dff=df.residual(m)
         test=fm(ma,dff)
         groups=ft(test, alpha); ma=ma[order(ma[,2], decreasing=TRUE),]
@@ -855,7 +904,7 @@ return(sds)
         m=aov(response~blocks+p*animal-p+animal+treatments+blocks/period, contrasts=list(treatments=contr.sum, animal=contr.sum, period=contr.sum, blocks=contr.sum), data=data)
         a<-anova(m)
         a<-fa1(a)
-        data2<-na.omit(data)
+                          data2<-na.omit(data)
         res=fr(m,data2)
         c=coef(m)
         names(c)
@@ -870,8 +919,10 @@ return(sds)
         Standart.Error= Standart.Error[-c(1:(a[[1]][1]+a[[1]][2]))]
         sem<-c(as.numeric(Standart.Error), as.numeric(Standart.Error)[1])*sqrt(1.5)
         sd=fsd(data)
-        treatment<-levels(data$treatments)
-        ma=data.frame(treatment,adjusted.mean=round(adjusted.mean,4),sd,sem)
+        max=fmax(data)
+        min=fmin(data)
+        treatment <- levels(data$treatments)
+        ma = data.frame(treatment,adjusted.mean=round(adjusted.mean,4), sd, sem, min,max)
         rownames(ma)=NULL
         dff=df.residual(m)
         test=fm(ma,dff)
@@ -1015,13 +1066,93 @@ return(sds)
             return(l)
         }
     
+    f16 = function(data) {
+        names(data) = c("treatments", "greek_letters", "rows", "columns",
+                        "response")
+        data <- data.frame(treatments = factor(data$treatments),
+                           greek_letters = factor(data$greek_letters), rows = factor(data$rows),
+                           columns = factor(data$columns), response = data$response)
+        m <- aov(response ~ treatments + greek_letters + rows + columns,
+                 data = data, contrasts = list(treatments = contr.sum,
+                                               greek_letters = contr.sum, rows = contr.sum, columns = contr.sum))
+        m1 <- aov(response ~ -1 + treatments + greek_letters + rows +
+                      columns, data = data, contrasts = list(treatments = contr.sum,
+                                                             greek_letters = contr.sum, rows = contr.sum, columns = contr.sum))
+        
+        a2 <- drop1(m,.~.,test="F")
+        a3 <- a2
+        a3<-fa2(a3,m)
+        a=a3
+        data2 <- na.omit(data)
+        res=fr(m,data2)
+        adjusted.mean <- round(coef(m1)[1:nlevels(data$treatments)],4)
+       sem <- round(sderrs(m1)[1:nlevels(data$treatments)],4)
+       sd=fsd(data)
+max=fmax(data)
+        min=fmin(data)
+        treatment <- levels(data$treatments)
+        ma = data.frame(treatment,adjusted.mean, sd, sem, min,max)
+        rownames(ma) = NULL;dff=df.residual(m)
+        test=fm(ma,dff)
+        groups=ft(test, alpha); ma=ma[order(ma[,2], decreasing=TRUE),]
+        means=adjusted.mean; names(means)=treatment
+        QME=deviance(m)/dff
+        nrep=length(data2[,1])/nlevels(data2[,1])
+        scott_knott=sk(means, dff, QME, nrep, alpha)
+        mf=data.frame(ma,groups, scott_knott)
+        rownames(mf) = NULL
+        l <- list(a, mf, test, res)
+        names(l) = list("Analysis of variance",
+                        "Adjusted means", "Multiple comparison test", "Residual analysis")
+        pres(m)
+        return(l)
+    }
+    
+     f17 = function(data) {
+        names(data) = c("treatments", "squares","greek_letters", "rows", "columns",
+                        "response")
+        data <- data.frame(treatments = factor(data$treatments),squares = factor(data$squares),
+                           greek_letters = factor(data$greek_letters), rows = factor(data$rows),
+                           columns = factor(data$columns), response = data$response)
+        m <- aov(response ~ treatments + squares+greek_letters + rows + columns,
+                 data = data, contrasts = list(treatments = contr.sum,squares=contr.sum,
+                                               greek_letters = contr.sum, rows = contr.sum, columns = contr.sum))
+        m1 <- aov(response ~ -1 + treatments + squares+greek_letters + rows +
+                      columns, data = data, contrasts = list(treatments = contr.sum,squares=contr.sum,
+                                                             greek_letters = contr.sum, rows = contr.sum, columns = contr.sum))
+        a <- anova(m)
+        a<-fa1(a)
+        data2 <- na.omit(data)
+        res=fr(m,data2)
+        adjusted.mean <- round(coef(m1)[1:nlevels(data$treatments)],4)
+       sem <- round(sderrs(m1)[1:nlevels(data$treatments)],4)
+       sd=fsd(data)
+       max=fmax(data)
+        min=fmin(data)
+        treatment <- levels(data$treatments)
+        ma = data.frame(treatment,adjusted.mean, sd, sem, min,max)
+        rownames(ma) = NULL;dff=df.residual(m)
+        test=fm(ma,dff)
+        groups=ft(test, alpha); ma=ma[order(ma[,2], decreasing=TRUE),]
+        means=adjusted.mean; names(means)=treatment
+        QME=deviance(m)/dff
+        nrep=length(data2[,1])/nlevels(data2[,1])
+        scott_knott=sk(means, dff, QME, nrep, alpha)
+        mf=data.frame(ma,groups, scott_knott)
+        rownames(mf) = NULL
+        l <- list(a, mf, test, res)
+        names(l) = list("Analysis of variance",
+                        "Adjusted means", "Multiple comparison test", "Residual analysis")
+        pres(m)
+        return(l)
+    }
     
     
     
     de1=c(1); de2=c(1,2);de3=c(1,2,3);de4=c(1,2,3,4);de5=c(1,2);de6=c(1,2,3)
     de7=c(1,2,3); de8=c(1,2); de9=c(1,2,3); de10=c(1,2,3);de11=c(1,2,3);de12=c(1,2,3);de13=c(1,2,3,4)
-    de14=c(1);de15=c(1,2);de16=c(1,2)
-    de=list(de1,de2,de3,de4,de5,de6,de7,de8,de9,de10,de11,de12,de13,de14,de15)
+    de14=c(1);de15=c(1,2);de16=c(1,2,3,4);de17=c(1,2,3,4,5)
+    de=list(de1,de2,de3,de4,de5,de6,de7,de8,de9,de10,de11,de12,de13,de14,de15,de16,de17)
     de=de[[design]]
     d=as.list(data)
     d1=d[de]
@@ -1030,7 +1161,7 @@ return(sds)
     h=length(d2)
     h=1:h
     l=lapply(h, f)
-    l2=list(f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13,f14,f15)
+    l2=list(f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13,f14,f15,f16,f17)
     fun=l2[[design]]
     li1=lapply(l, fun)
     names(li1)=names(d2)

@@ -157,6 +157,12 @@ r1
 
 # hierarchical rows and columns
 # r8
-        
+
+#split.plot in latin square
+        #data(data3)
+        #d=rbind(data3,data3)
+        #d=data3[,-4];d=data.frame(d,time=rep(1:2,each=16),response=rnorm(32,45,4))
+# r9=ea2(d,design=6)
+# r9        
 }
 
